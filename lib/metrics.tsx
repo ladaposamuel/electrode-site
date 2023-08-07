@@ -1,24 +1,48 @@
 import 'server-only';
 
 import { Octokit } from '@octokit/rest';
-import { queryBuilder } from 'lib/planetscale';
+
 import { cache } from 'react';
+import { join, dirname } from 'node:path'
+import { fileURLToPath } from 'node:url'
 
-export const getBlogViews = cache(async () => {
-  if (!process.env.DATABASE_URL) {
-    return 0;
-  }
+import { Low } from 'lowdb'
+import { JSONFile } from 'lowdb/node'
 
-  const data = await queryBuilder
-    .selectFrom('views')
-    .select(['count'])
-    .execute();
+const __dirname = dirname(fileURLToPath(import.meta.url))
+const file = join(__dirname, '../db.json')
 
-  return data.reduce((acc, curr) => acc + Number(curr.count), 0);
-});
+type Data = {
+  views: Array<{
+    id: number;
+    title: string;
+    slug: string;
+    count: number;
+  }>;
+};
 
+export const getBlogViews = async () => {
+  const defaultData: Data = { views: [] };
+
+  const adapter = new JSONFile<Data>(file);
+  const db = new Low<Data>(adapter, defaultData);
+  await db.read();
+  const views = db.data.views;
+
+  const totalCount: number = views.reduce((sum, blog) => sum + blog.count, 0);
+
+  return totalCount;
+};
+
+
+//total views count on all blogs
 export const getViewsCount = cache(async () => {
-  return queryBuilder.selectFrom('views').select(['slug', 'count']).execute();
+  const defaultData: Data = { views: [] };
+    const adapter = new JSONFile<Data>(file);
+    const db = new Low<Data>(adapter, defaultData);
+    await db.read();
+    let views =   db.data.views;
+    return views;
 });
 
 export async function getTweetCount() {

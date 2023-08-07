@@ -13,13 +13,11 @@ export const revalidate = 60;
 export const dynamic = 'force-dynamic';
 
 export default async function HomePage() {
-  let starCount, views, tweetCount;
+  let views;
 
   try {
-    [starCount, views, tweetCount] = await Promise.all([
-      getStarCount(),
-      getBlogViews(),
-      getTweetCount(),
+    [ views] = await Promise.all([
+      getBlogViews()
     ]);
   } catch (error) {
     console.error(error);
@@ -44,24 +42,21 @@ export default async function HomePage() {
           <a
             rel="noopener noreferrer"
             target="_blank"
-            href="https://twitter.com/leeerob"
+            href="https://wakatime.com/@electrode"
             className="flex items-center gap-2"
           >
-            <TwitterIcon />
-            {`233433 hours of coding today`}
-          </a>
-          <a
-            rel="noopener noreferrer"
-            target="_blank"
-            href="https://github.com/leerob"
-            className="flex items-center gap-2"
-          >
-            <ViewsIcon />
-            {`0 site visits.`}
+          <Image
+          alt={'wakatime stats'}
+          src={'https://wakatime.com/badge/user/c81ce760-211d-45d2-8bcd-856d260c5c8c.svg'}
+          width={200}
+          height={20}
+          priority
+        />
+
           </a>
           <Link href="/blog" className="flex items-center">
             <ViewsIcon />
-            {`0 blog views all time`}
+            {views} {` blog views all time`}
           </Link>
         </div>
       </div>
