@@ -11,9 +11,10 @@ import {
   updateDoc,
   doc,
   addDoc,
+  runTransaction,
   serverTimestamp,
 } from "firebase/firestore"; // Import the necessary Firestore functions
-import { initializeApp } from "firebase/app";
+import { initializeApp,  } from "firebase/app";
 
 // import { revalidatePath } from 'next/cache';
 
@@ -28,37 +29,47 @@ const firebaseConfig = {
   measurementId: process.env.REACT_APP_FIREBASE_MEASUREMENT_ID,
 };
 
-export async function increment(title: string, slug: string) {
+interface View {
+  title: string;
+  slug: string;
+  count: number;
+  timestamp: any;
+}
   const app = initializeApp(firebaseConfig);
   const db = getFirestore(app);
-
   const viewsCollection = collection(db, "views");
 
-  // Retrieve all documents from the "views" collection
-  const querySnapshot = await getDocs(viewsCollection);
-  const views = querySnapshot.docs.map((doc) => ({
-    ...doc.data(),
-    id: doc.id,
-  }));
 
-  const indexToUpdate = views.findIndex((view) => view.slug === slug);
-  if (indexToUpdate !== -1) {
-    // Increment the count property
-    views[indexToUpdate].count += 1;
-
-    // Update the document in Firestore
-    const viewDoc = doc(db, "views", views[indexToUpdate].id);
-    await updateDoc(viewDoc, { count: views[indexToUpdate].count });
-  } else {
-    // Add a new document to Firestore
-    await addDoc(viewsCollection, {
-      title,
-      slug,
-      count: 1,
-      timestamp: serverTimestamp(),
-    });
+  export async function increment(title: string, slug: string): Promise<void> {
+    const app = initializeApp(firebaseConfig);
+    const db = getFirestore(app);
+    const viewsCollection = collection(db, 'views');
+  
+    const viewDocRef = doc(viewsCollection, slug);
+  
+    try {
+      await runTransaction(db, async (transaction) => {
+        const viewDoc = await transaction.get(viewDocRef);
+  
+        if (viewDoc.exists()) {
+          const viewData = viewDoc.data() as View;
+          const count = viewData.count + 1;
+          transaction.update(viewDocRef, { count });
+        } else {
+          const newViewData: View = {
+            title,
+            slug,
+            count: 1,
+            timestamp: serverTimestamp(),
+          };
+          transaction.set(viewDocRef, newViewData);
+        }
+      });
+    } catch (error) {
+      console.error('Error updating or adding view:', error);
+      throw error;
+    }
   }
-}
 
 async function getSession(): Promise<Session> {
   const session = await getServerSession(authOptions);

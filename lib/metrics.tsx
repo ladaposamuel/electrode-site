@@ -26,10 +26,11 @@ export const getBlogViews = async () => {
   try {
     const querySnapshot = await getDocs(collection(db, 'views'));
     const views = querySnapshot.docs.map((doc) => {
-      const data = doc.data();
+      const data = doc.data() as { count: number, timestamp: any };
       // Convert the Firestore Timestamp to a simple value
       return { ...data, timestamp: data.timestamp.toMillis() };
     });
+
 
     const totalCount: number = views.reduce((sum, blog) => sum + blog.count, 0);
     return totalCount;
@@ -38,6 +39,7 @@ export const getBlogViews = async () => {
     throw error;
   }
 };
+
 
 
 

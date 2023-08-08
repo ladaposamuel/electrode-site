@@ -8,16 +8,8 @@ export default function ViewCounter({
   allViews,
   trackView,
 }: {
-  post: {
-    slug: string;
-    structuredData: {
-      headline: string;
-    };
-  };
-  allViews: {
-    slug: string;
-    count: number;
-  }[];
+  post: any;
+  allViews: any;
   trackView?: boolean;
 }) {
   const { slug, structuredData } = post;
