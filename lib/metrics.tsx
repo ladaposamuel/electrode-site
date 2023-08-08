@@ -1,48 +1,59 @@
 import 'server-only';
 
 import { Octokit } from '@octokit/rest';
+import { collection, doc, getDocs } from "firebase/firestore"; 
+import { initializeApp } from "firebase/app";
+import { getFirestore } from "firebase/firestore";
 
 import { cache } from 'react';
-import { join, dirname } from 'node:path'
-import { fileURLToPath } from 'node:url'
 
-import { Low } from 'lowdb'
-import { JSONFile } from 'lowdb/node'
 
-const __dirname = dirname(fileURLToPath(import.meta.url))
-const file = join(__dirname, '../db.json')
-
-type Data = {
-  views: Array<{
-    id: number;
-    title: string;
-    slug: string;
-    count: number;
-  }>;
+const firebaseConfig = {
+  apiKey: process.env.REACT_APP_FIREBASE_API_KEY,
+  authDomain: process.env.REACT_APP_FIREBASE_AUTH_DOMAIN,
+  databaseURL: process.env.REACT_APP_FIREBASE_DATABASE_URL,
+  projectId: process.env.REACT_APP_FIREBASE_PROJECT_ID,
+  storageBucket: process.env.REACT_APP_FIREBASE_STORAGE_BUCKET,
+  messagingSenderId: process.env.REACT_APP_FIREBASE_MESSAGING_SENDER_ID,
+  appId: process.env.REACT_APP_FIREBASE_APP_ID,
+  measurementId: process.env.REACT_APP_FIREBASE_MEASUREMENT_ID,
 };
+
+const app = initializeApp(firebaseConfig);
+const db = getFirestore(app);
 
 export const getBlogViews = async () => {
-  const defaultData: Data = { views: [] };
+  try {
+    const querySnapshot = await getDocs(collection(db, 'views'));
+    const views = querySnapshot.docs.map((doc) => {
+      const data = doc.data();
+      // Convert the Firestore Timestamp to a simple value
+      return { ...data, timestamp: data.timestamp.toMillis() };
+    });
 
-  const adapter = new JSONFile<Data>(file);
-  const db = new Low<Data>(adapter, defaultData);
-  await db.read();
-  const views = db.data.views;
-
-  const totalCount: number = views.reduce((sum, blog) => sum + blog.count, 0);
-
-  return totalCount;
+    const totalCount: number = views.reduce((sum, blog) => sum + blog.count, 0);
+    return totalCount;
+  } catch (error) {
+    console.error('Error fetching blog views:', error);
+    throw error;
+  }
 };
 
 
-//total views count on all blogs
+
 export const getViewsCount = cache(async () => {
-  const defaultData: Data = { views: [] };
-    const adapter = new JSONFile<Data>(file);
-    const db = new Low<Data>(adapter, defaultData);
-    await db.read();
-    let views =   db.data.views;
-    return views;
+    try {
+      const querySnapshot = await getDocs(collection(db, 'views'));
+      const views = querySnapshot.docs.map((doc) => {
+        const data = doc.data();
+        // Convert the Firestore Timestamp to a simple value
+        return { ...data, timestamp: data.timestamp.toMillis() };
+      });
+      return views;
+    } catch (error) {
+      console.error('Error fetching blog views count:', error);
+      throw error;
+    }
 });
 
 export async function getTweetCount() {
