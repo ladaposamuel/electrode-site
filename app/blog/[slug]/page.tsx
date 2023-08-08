@@ -23,8 +23,8 @@ export async function generateMetadata({
     slug,
   } = post;
   const ogImage = image
-    ? `https://leerob.io${image}`
-    : `https://leerob.io/og?title=${title}`;
+    ? `https://electrode.dev${image}`
+    : `https://electrode.dev/og?title=${title}`;
 
   return {
     title,
@@ -34,7 +34,7 @@ export async function generateMetadata({
       description,
       type: 'article',
       publishedTime,
-      url: `https://leerob.io/blog/${slug}`,
+      url: `https://electrode.dev/blog/${slug}`,
       images: [
         {
           url: ogImage,
@@ -49,6 +49,17 @@ export async function generateMetadata({
     },
   };
 }
+
+const formatDate = (date: string | Date): string => {
+  try {
+    const formattedDate = new Date(date).toLocaleDateString(undefined,  { year: 'numeric', month: 'short', day: '2-digit' });
+    return formattedDate.replace(/\//g, '-');
+  } catch (error) {
+    console.error('Error formatting date:', error);
+    throw error;
+  }
+};
+
 
 export default async function Blog({ params }) {
   const post = allBlogs.find((post) => post.slug === params.slug);
@@ -67,12 +78,15 @@ export default async function Blog({ params }) {
       <script type="application/ld+json" suppressHydrationWarning>
         {JSON.stringify(post.structuredData)}
       </script>
+      <a href="/blog" className="text-sm font-mono text-neutral-500 dark:text-neutral-400">
+        ← Back to blog
+      </a>
       <h1 className="font-bold text-3xl font-serif max-w-[650px]">
         <Balancer>{post.title}</Balancer>
       </h1>
       <div className="grid grid-cols-[auto_1fr_auto] items-center mt-4 mb-8 font-mono text-sm max-w-[650px]">
         <div className="bg-neutral-100 dark:bg-neutral-800 rounded-md px-2 py-1 tracking-tighter">
-          {post.publishedAt}
+          {formatDate(post.publishedAt)}
         </div>
         <div className="h-[0.2em] bg-neutral-50 dark:bg-neutral-800 mx-2" />
         <ViewCounter allViews={allViews} post={post} trackView />

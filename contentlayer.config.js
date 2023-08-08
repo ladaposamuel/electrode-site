@@ -29,9 +29,9 @@ const computedFields = {
       dateModified: doc.publishedAt,
       description: doc.summary,
       image: doc.image
-        ? `https://leerob.io${doc.image}`
-        : `https://leerob.io/og?title=${doc.title}`,
-      url: `https://leerob.io/blog/${doc._raw.flattenedPath}`,
+        ? `https://electrode.dev${doc.image}`
+        : `https://electrode.dev/og?title=${doc.title}`,
+      url: `https://electrode.dev/blog/${doc._raw.flattenedPath}`,
       author: {
         '@type': 'Person',
         name: 'Samuel Ladapo',

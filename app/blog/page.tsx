@@ -9,6 +9,16 @@ export const metadata: Metadata = {
   description: 'Read my thoughts on software development, design, and more.',
 };
 
+const formatDate = (date: string | Date): string => {
+  try {
+    const formattedDate = new Date(date).toLocaleDateString(undefined,  { year: 'numeric', month: 'short', day: '2-digit' });
+    return formattedDate.replace(/\//g, '-');
+  } catch (error) {
+    console.error('Error formatting date:', error);
+    throw error;
+  }
+};
+
 export default async function BlogPage() {
   const allViews = await getViewsCount();
   return (
@@ -28,11 +38,12 @@ export default async function BlogPage() {
             href={`/blog/${post.slug}`}
           >
             <div className="w-full flex flex-col">
-              <p>{post.title}</p>
+              <p>⥱ {post.title}</p>
               <ViewCounter
                 post={post}
                 allViews={allViews}
                 trackView={false}
+                showTime={formatDate(post.publishedAt)}
               />
             </div>
           </Link>

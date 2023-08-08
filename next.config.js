@@ -15,6 +15,12 @@ const nextConfig = {
         hostname: 'pbs.twimg.com',
         pathname: '/**',
       },
+      {
+        protocol: 'https',
+        hostname: 'i.imgur.com',
+        port: '',
+        pathname: '/**',
+      },
     ],
   },
   redirects() {

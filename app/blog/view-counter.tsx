@@ -7,10 +7,12 @@ export default function ViewCounter({
   post,
   allViews,
   trackView,
+  showTime = '',
 }: {
   post: any;
   allViews: any;
   trackView?: boolean;
+  showTime?: string;
 }) {
   const { slug, structuredData } = post;
   const { headline } = structuredData;
@@ -18,6 +20,7 @@ export default function ViewCounter({
   const viewsForSlug = allViews.find((view) => view.slug === slug);
   const count = viewsForSlug?.count || 0;
   const verb = count === 1 ? 'view' : 'views';
+
 
   useEffect(() => {
     if (trackView) {
@@ -27,7 +30,7 @@ export default function ViewCounter({
 
   return (
     <p className="font-mono text-sm text-neutral-500 tracking-tighter">
-      {`${count.toLocaleString()} ${verb}`}
+      {`${count.toLocaleString()} ${verb}`} {showTime ? `| ${showTime}` : ''}
     </p>
   );
 }
