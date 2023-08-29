@@ -39,6 +39,7 @@ export default async function HomePage() {
           priority
         />
         <div className="mt-8 md:mt-0 ml-0 md:ml-6 space-y-2 text-neutral-500 dark:text-neutral-400">
+        {'</> Total time coded:'} 
           <a
             rel="noopener noreferrer"
             target="_blank"
@@ -52,8 +53,7 @@ export default async function HomePage() {
           height={20}
           priority
         />
-
-          </a>
+        </a>
           <Link href="/blog" className="flex items-center">
             <ViewsIcon />
             {views} {` blog views all time`}

@@ -41,10 +41,11 @@ export const metadata: Metadata = {
     title: 'Samuel Ladapo',
     card: 'summary_large_image',
   },
-  verification: {
-    google: 'eZSdmzAXlLkKhNJzfgwDqWORghxnJ8qR9_CHdAh5-xw',
-    yandex: '14d2e73487fa6c71',
-  },
+  alternates: {
+    types: {
+      'application/rss+xml': 'https://electrode.dev/api/blog/feed.xml',
+    }
+  }
 };
 
 export default function RootLayout({

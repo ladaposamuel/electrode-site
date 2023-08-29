@@ -7,6 +7,7 @@ const nextConfig = {
     serverActions: true,
   },
   images: {
+    dangerouslyAllowSVG: true,
     formats: ['image/avif', 'image/webp'],
     // Twitter Profile Picture
     remotePatterns: [
@@ -18,6 +19,18 @@ const nextConfig = {
       {
         protocol: 'https',
         hostname: 'i.imgur.com',
+        port: '',
+        pathname: '/**',
+      },
+      {
+        protocol: 'https',
+        hostname: 'img.shields.io',
+        port: '',
+        pathname: '/**',
+      },
+      {
+        protocol: 'https',
+        hostname: 'wakatime.com',
         port: '',
         pathname: '/**',
       },
