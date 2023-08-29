@@ -18,10 +18,10 @@ export default function Contact() {
         <p className="my-5 text-neutral-800 dark:text-neutral-200">
           {`Hey there! 👋 Whether you want to discuss a project, share ideas, or just have a tech chat, I'm all ears! Feel free to drop me a line at `}
           <a
-            href="mailto:hi@electrode.dev"
+            href="mailto:hello@electrode.dev"
             className="text-primary-500 hover:underline"
           >
-           <b> hi@electrode.dev</b>
+           <b> hello@electrode.dev</b>
           </a>
           {`. Let's embark on a journey to turn your ideas into digital magic!`}
         </p>
