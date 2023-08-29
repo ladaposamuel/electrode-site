@@ -1,0 +1,72 @@
+---
+title: 'Herd - A MacOS PHP development Server'
+publishedAt: '2023-08-12'
+summary: 'Read about my experience with siwtching PHP versions on MacOS and getting started with
+ Laravel Herd.'
+---
+
+### My Journey in Managing Projects with Multiple PHP Versions on MacOS
+
+
+```bash
+#!/bin/bash
+function switchphp() {
+  brew unlink php@"$1" && brew link --force php@"$2"
+}
+```
+
+![Switching PHP Versions](https://i.imgur.com/3S5R3wQ.png)
+
+However, this approach was not optimal, as there are more effective ways to
+handle this problem. For instance, if you have both versions installed via
+Homebrew, you can use the following commands:
+
+```bash
+brew unlink php@7.4
+brew link php@7.3
+```https://i.imgur.com/bjfP43s.png
+
+### Introducing Laravel Herd
+
+During Laravel US 2023 in Nashville, Taylor Otwell introduced a groundbreaking
+tool named Laravel Herd. You can watch the announcement
+[here](https://youtu.be/1P3wLy49t2c?si=kR87XYsOH5yJa35B&t=795).
+
+Laravel Herd is a lightning-fast, native Laravel and PHP development environment
+designed for macOS. It encompasses everything necessary to kickstart Laravel
+development, including PHP and Nginx. With Herd installed, you're equipped to
+embark on Laravel projects effortlessly.
+
+Apart from [Laragon](https://laragon.org/index.html), Laravel Herd has emerged
+as one of the most exceptional local development tools, particularly for MacOS.
+To learn more about it, visit the [official
+documentation](https://laravel.com/docs/8.x/herd).
+
+### Setting Up Herd
+
+> Note: Previously, I relied on Laravel Valet as my primary local development
+> tool. Transitioning to the new Laravel Herd was a smooth process. After
+> installing Herd, it promptly listed all my projects, enabling me to start
+> using it right away.
+
+The installation process for Herd is straightforward. You can download it from
+the [Laravel Herd website](https://herd.laravel.com/) and follow the
+installation instructions.
+
+That's it! You're now ready to make the most of Herd. It will automatically
+display all your projects, PHP versions, and a feature called
+[expose](https://expose.dev/)—an alternative to
+[ngrok](https://ngrok.com/)—which allows you to expose your local development
+server to the internet.
+
+Here's how convenient it has become for me to switch between PHP versions and
+upgrade to the latest one. 😀 ![Switching PHP
+Versions](https://i.imgur.com/bjfP43s.png)
+
+For further insights into the additional features offered by Herd, explore the
+[Laravel Herd documentation](https://herd.laravel.com/).
+
+Thank you for reading! If you have any questions or comments, please don't
+hesitate to contact me [here](https://www.electrode.dev/contact).
+
+Happy Coding!

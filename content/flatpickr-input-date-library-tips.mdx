@@ -1,0 +1,77 @@
+---
+title: 'Date Range Picker with Flatpickr'
+publishedAt: '2023-08-25'
+summary: 'How to validate date range with two input fields when using Flatpickr'
+---
+
+Revamping Date Selection for a Smoother Experience: The Power of Flatpickr
+Library
+
+In a recent project, I needed to create a way for users to pick a range of
+dates, both a starting "from" date and an ending "to" date. To make this happen,
+I decided to use the [Flatpickr Datepicker library](https://flatpickr.js.org/). This library is known
+for being really good at handling dates in all sorts of ways, which was exactly
+what I needed.
+
+After setting up the Flatpickr library, I got the date range feature working
+properly. But then, when I showed it to the client, they got a bit confused.
+They wanted to pick a range of dates, but they were expecting to see two
+separate places to put the starting and ending dates. Instead, they only saw one
+box.
+
+![picture 0](https://i.imgur.com/SYDs8Bi.png)  
+
+This feedback made me realize that the way things looked and worked wasn't
+matching up with what the client wanted. I saw a chance to make things better by
+changing how the date selection worked. By making the library work together with
+a design that makes more sense, I could fix the confusion and make things
+smoother for the users.
+
+But now that there are going to be two input fields, and the value of the `from` 
+field needs to be greater than the value of the `to` field, I needed to make sure
+so I wrote this article to show you how to do it.
+
+
+
+![picture 1](https://i.imgur.com/qkrR33M.png)  
+
+
+Here's my solution:
+
+
+```html
+<div class="col-md-4 form-group">
+    <label for="fp-range">Start Date</label>
+    <input type="text" name="date_range[start]" id="fp-range" class="form-control date_range_start"
+           placeholder="YYYY-MM-DD"/>
+</div>
+<div class="col-md-4 form-group">
+    <label for="fp-range">End Date</label>
+    <input type="text" name="date_range[end]" id="fp-range " class="form-control  date_range_end"
+           placeholder="YYYY-MM-DD"/>
+</div>
+```
+
+
+```javascript
+ const dateRangeStart = $('.date_range_start').flatpickr({
+    altInput: true,
+    altFormat: 'F j, Y',
+    dateFormat: 'Y-m-d'
+});
+
+
+$('.date_range_end').flatpickr({
+    altInput: true,
+    altFormat: 'F j, Y',
+    dateFormat: 'Y-m-d',
+    onChange: function(selectedDates) {
+        const startDate = dateRangeStart.selectedDates[0];
+        const endDate = selectedDates[0];
+        if (endDate < startDate) {
+            dateRangeStart.setDate(endDate);
+        }
+    }
+});
+
+```
