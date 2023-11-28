@@ -22,7 +22,7 @@ export default function Contact() {
             className="flex items-center hover:text-neutral-700 dark:hover:text-neutral-200 transition-all"
             rel="noopener noreferrer"
             target="_blank"
-            href="https://resume.io/r/Ofn9CEf2z"
+            href="https://drive.google.com/file/d/1ABhmKn6neWu69_1LF2vKreI2jEClMuDM/view?usp=share_link"
           >
             <ArrowIcon />
             Resume

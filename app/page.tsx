@@ -1,24 +1,22 @@
-import Link from 'next/link';
-import Image from 'next/image';
-import { getBlogViews, getTweetCount, getStarCount } from 'lib/metrics';
+import Link from "next/link";
+import Image from "next/image";
+import { getBlogViews, getTweetCount, getStarCount } from "lib/metrics";
 import {
   ArrowIcon,
   GitHubIcon,
   TwitterIcon,
   ViewsIcon,
-} from 'app/components/icons';
-import { name, about, bio, avatar } from 'lib/info';
+} from "app/components/icons";
+import { name, about, bio, avatar } from "lib/info";
 
 export const revalidate = 60;
-export const dynamic = 'force-dynamic';
+export const dynamic = "force-dynamic";
 
 export default async function HomePage() {
   let views;
 
   try {
-    [ views] = await Promise.all([
-      getBlogViews()
-    ]);
+    [views] = await Promise.all([getBlogViews()]);
   } catch (error) {
     console.error(error);
   }
@@ -39,21 +37,23 @@ export default async function HomePage() {
           priority
         />
         <div className="mt-8 md:mt-0 ml-0 md:ml-6 space-y-2 text-neutral-500 dark:text-neutral-400">
-        {'</> Total time coded:'} 
+          {"</> Total time coded:"}
           <a
             rel="noopener noreferrer"
             target="_blank"
             href="https://wakatime.com/@electrode"
             className="flex items-center gap-2"
           >
-          <Image
-          alt={'wakatime stats'}
-          src={'https://wakatime.com/badge/user/c81ce760-211d-45d2-8bcd-856d260c5c8c.svg'}
-          width={200}
-          height={20}
-          priority
-        />
-        </a>
+            <Image
+              alt={"wakatime stats"}
+              src={
+                "https://wakatime.com/badge/user/c81ce760-211d-45d2-8bcd-856d260c5c8c.svg"
+              }
+              width={200}
+              height={20}
+              priority
+            />
+          </a>
           <Link href="/blog" className="flex items-center">
             <ViewsIcon />
             {views} {` blog views all time`}
@@ -69,7 +69,7 @@ export default async function HomePage() {
             className="flex items-center hover:text-neutral-700 dark:hover:text-neutral-200 transition-all"
             rel="noopener noreferrer"
             target="_blank"
-            href="https://resume.io/r/Ofn9CEf2z"
+            href="https://drive.google.com/file/d/1ABhmKn6neWu69_1LF2vKreI2jEClMuDM/view?usp=share_link"
           >
             <ArrowIcon />
             <p className="h-7">Check my Resume</p>

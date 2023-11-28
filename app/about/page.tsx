@@ -6,6 +6,16 @@ const frameworks = [
   { name: "MySql", color: "blue" },
 ];
 
+function Badge(props) {
+  return (
+    <a
+      {...props}
+      target="_blank"
+      className="border border-neutral-200 dark:border-neutral-700 bg-neutral-50 dark:bg-neutral-800 rounded p-1 text-sm inline-flex items-center leading-4 text-neutral-900 dark:text-neutral-100 no-underline"
+    />
+  );
+}
+
 const stacks = [
   "PHP",
   "GIT",
@@ -37,9 +47,6 @@ const FrameworkImages = () => (
 );
 
 export default function AboutPage() {
-  const experienceYears = 5;
-  // const frameworks = ['PHP', 'Laravel', 'Lumen'];
-
   return (
     <section>
       <h1 className="font-bold text-3xl font-serif">About Me</h1>
@@ -48,10 +55,16 @@ export default function AboutPage() {
         My journey has led me through a diverse array of technologies and tools, including:`}
       </p>
       <p className=" text-neutral-800 dark:text-neutral-200">
-        {/* {`${frameworks
-          .map((framework) => framework.name)
-          .join(", ")} frameworks.`} */}
-        {stacks.map((stack) => stack).join(", ")}
+        {stacks.map((stack, index) => (
+          <>
+            <Badge
+              key={index}
+              href={`https://drive.google.com/file/d/1ABhmKn6neWu69_1LF2vKreI2jEClMuDM/view?usp=share_link`}
+            >
+              {`${stack}`}
+            </Badge>{" "}
+          </>
+        ))}
       </p>
 
       <p className=" text-neutral-800 dark:text-neutral-200 pt-5">

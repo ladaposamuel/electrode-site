@@ -7,6 +7,16 @@ summary: 'Read about my experience with siwtching PHP versions on MacOS and gett
 
 ### My Journey in Managing Projects with Multiple PHP Versions on MacOS
 
+I work with PHP and Laravel on a daily basis, for both personal projects,
+freelance work for clients, and at my job. Recently, our workplace upgraded our
+PHP version to 7 (a long story), which led to some challenges. Before the
+upgrade, I faced difficulties in switching between PHP versions. I had installed
+PHP 7.4 and 8.2 via Homebrew, and managing the switch between the two versions
+was quite a hassle. I needed to stop one version and start the other every time
+I wanted to switch.
+
+To address this, I came up with a temporary solution using a simple bash script:
+
 
 ```bash
 #!/bin/bash
@@ -24,7 +34,7 @@ Homebrew, you can use the following commands:
 ```bash
 brew unlink php@7.4
 brew link php@7.3
-```https://i.imgur.com/bjfP43s.png
+```
 
 ### Introducing Laravel Herd
 
@@ -37,14 +47,14 @@ designed for macOS. It encompasses everything necessary to kickstart Laravel
 development, including PHP and Nginx. With Herd installed, you're equipped to
 embark on Laravel projects effortlessly.
 
-Apart from [Laragon](https://laragon.org/index.html), Laravel Herd has emerged
-as one of the most exceptional local development tools, particularly for MacOS.
+Apart from [Laragon](https://laragon.org/index.html) which I've used in the past for Windows, 
+Laravel Herd has emerged as one of the most exceptional local development tool for MacOS with a GUI.
 To learn more about it, visit the [official
 documentation](https://laravel.com/docs/8.x/herd).
 
 ### Setting Up Herd
 
-> Note: Previously, I relied on Laravel Valet as my primary local development
+> Note: I use Laravel Valet as my primary local development
 > tool. Transitioning to the new Laravel Herd was a smooth process. After
 > installing Herd, it promptly listed all my projects, enabling me to start
 > using it right away.
@@ -60,8 +70,8 @@ display all your projects, PHP versions, and a feature called
 server to the internet.
 
 Here's how convenient it has become for me to switch between PHP versions and
-upgrade to the latest one. 😀 ![Switching PHP
-Versions](https://i.imgur.com/bjfP43s.png)
+upgrade to the latest one. 😀 
+![Switching PHP Versions](https://i.imgur.com/bjfP43s.png)
 
 For further insights into the additional features offered by Herd, explore the
 [Laravel Herd documentation](https://herd.laravel.com/).

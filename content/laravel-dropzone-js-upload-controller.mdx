@@ -1,0 +1,148 @@
+---
+title: "Using Dropzone.js with Laravel"
+publishedAt: "28 Nov,2023"
+summary: "A quick guide on how to use Dropzone.js with Laravel"
+---
+
+## Introduction
+
+Dropzone.js is a JavaScript library that provides drag and drop file uploads
+with image previews. It’s lightweight, doesn’t depend on any other library
+(like jQuery) and is highly customizable.
+
+In this tutorial I'm going to walk you through how I setup and use Dropzone.js
+with Laravel. I'm going to assume you already have a Laravel application up
+and running and plan to integrate Dropzone.js into an existing form.
+
+## Prequities
+
+- Dropzone.js CSS
+- Dropzone.js JS
+- jQuery
+- An existing Laravel application
+
+## Installation
+
+Using it's CDN is the easiest way to get started with Dropzone.js. Just add the following script tag to your blade partials:
+
+Script:
+
+```html
+<script src="https://cdnjs.cloudflare.com/ajax/libs/dropzone/4.2.0/min/dropzone.min.js"></script>
+```
+
+CSS:
+
+```html
+<link
+  rel="stylesheet"
+  href="https://cdnjs.cloudflare.com/ajax/libs/dropzone/4.2.0/min/dropzone.min.css"
+/>
+```
+
+## Usage
+
+Dropzone.js is a breeze to set up. First, add two API routes to your `web.php` file to handle the file uploads and deletions:
+
+web.php
+
+```php
+    Route::post('/file/upload/', 'FileUploadController@upload');
+    Route::post('/file/delete_upload/', 'FileUploadController@delete_upload');
+```
+
+Next, add the following HTML to your file upload page where the upload form is
+located. This will create a dropzone area where users can drag and drop files
+to upload. It will also create a hidden input field that will store the file
+names of the uploaded files. This is useful if you want to save the file names
+to a database table.
+
+```html
+<form enctype="multipart/form-data">
+  <div class="control-group">
+    <label class="control-label" for="period">Invoices</label>
+    <div class="controls">
+      <div class="form-group dropzone" id="dZUpload"></div>
+      <div id="image_gallery"></div>
+    </div>
+  </div>
+</form>
+```
+
+Next, add the following JavaScript to your file upload page. This will initialize the dropzone area and handle the file uploads and deletions.
+
+````html
+<script>
+  Dropzone.options.dZUpload = {
+    headers: { "X-CSRF-TOKEN": $('meta[name="csrf-token"]').attr("content") },
+    url: "{{ url()->current() }}/upload",
+    autoProcessQueue: true,
+    uploadMultiple: true,
+    dictDefaultMessage:
+      "<h4>Drop files here or click to upload document(s)<h4>",
+    parallelUploads: 5,
+    maxFiles: 5,
+    maxFilesize: 20000,
+    acceptedFiles: "image/*,.pdf,.doc,.docx,.odt,.rtf,.docx",
+    addRemoveLinks: true,
+    removedfile: function (file) {
+      var name = file.name;
+      $.ajax({
+        type: "POST",
+        headers: {
+          "X-CSRF-TOKEN": $('meta[name="csrf-token"]').attr("content"),
+        },
+        url: "{{ url()->current() }}/delete_upload",
+        data: "id=" + name,
+        dataType: "html",
+      });
+      var _ref;
+      return (_ref = file.previewElement) != null
+        ? _ref.parentNode.removeChild(file.previewElement)
+        : void 0;
+    },
+    success: function (file, response) {
+      $("#uploadedImages").val(response);
+    },
+    error: function (file, response) {
+      file.previewElement.classList.add("dz-error");
+    },
+  };
+</script>
+````
+
+Finally, add the following controller methods to handle the file uploads and deletions:
+
+```php
+    public function upload(Request $request)
+    {
+        $file = $request->file('file');
+        $filename = $file->getClientOriginalName();
+        $file->move(public_path('uploads'), $filename);
+        return response()->json($filename);
+    }
+
+    public function delete_upload(Request $request)
+    {
+        $filename = $request->get('id');
+        $path = public_path() . '/uploads/' . $filename;
+        if (file_exists($path)) {
+            unlink($path);
+        }
+        return $filename;
+    }
+```
+
+That's it! You should now have a working file upload form that uses Dropzone.js.
+
+## Conclusion
+
+Dropzone.js is a great library for handling file uploads. It's lightweight, easy to use and highly customizable. I hope this tutorial has helped you get started with Dropzone.js and Laravel. If you have any questions or comments, please leave them below.
+
+## References
+
+- [Dropzone.js](https://www.dropzonejs.com/)
+- [Laravel](https://laravel.com/)
+- [jQuery](https://jquery.com/)
+
+
