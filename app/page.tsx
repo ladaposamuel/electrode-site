@@ -50,7 +50,7 @@ export default async function HomePage() {
             />
           </a>
           <Link href="/blog" className="flex items-center">
-            {"👀 "} {views} {` blog views`}
+            {"👀 Blog views:"} {views}
           </Link>
           {/* <Link href="/blog" className="flex items-center">
             {"🏢 "}
@@ -67,7 +67,7 @@ export default async function HomePage() {
             className="flex items-center hover:text-neutral-700 dark:hover:text-neutral-200 transition-all"
             rel="noopener noreferrer"
             target="_blank"
-            href="https://drive.google.com/file/d/1ABhmKn6neWu69_1LF2vKreI2jEClMuDM/view?usp=share_link"
+            href="https://drive.google.com/drive/folders/16Y4SQmp499QuJi-MBbDgTo2mx89sOf83?usp=sharing"
           >
             <ArrowIcon />
             <p className="h-7">Check my Resume</p>
