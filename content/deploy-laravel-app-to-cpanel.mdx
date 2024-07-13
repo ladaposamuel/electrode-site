@@ -1,0 +1,79 @@
+---
+title: 'A simple script to complete Laravel deployment on CPANEL'
+publishedAt: '2024-01-11'
+summary: 'A simple script to complete Laravel deployment on CPANEL, it will auto copy public folder to public_html and clear cache.'
+---
+
+## Introduction
+
+A simple script to complete Laravel deployment on CPANEL, it will auto copy 
+public folder to public_html and clear cache
+
+### Prerequisites
+
+- A server with CPANEL
+- A Laravel project
+- SSH access to the server
+- GIT already setup on the server
+
+### Deployment
+
+I work with PHP and Laravel on a daily basis, for both personal projects,
+freelance work for clients, and at my job. I have a few different servers and 
+most of them are on CPANEL. I have been using CPANEL for a long time and I
+have been using it for deployment as well. I have been using the same script
+for a long time and I thought it would be a good idea to share it with you.
+
+### Setup
+
+First, you need to create a new file in the root of your project and name it
+`deploy.sh` and add the following code to it.
+
+
+### The script
+
+```bash
+#!/bin/sh
+
+# Change to the project directory.
+cd ~/app
+
+# SSH agent setup
+eval $(ssh-agent -s)
+ssh-add ~/.ssh/main
+
+# Pull the latest changes from the git repository
+git pull
+
+# Clear caches
+php artisan cache:clear
+php artisan route:cache
+php artisan config:cache
+php artisan view:cache
+
+# Delete the content of ~/demo.venhoot.com
+rm -rf ~/public_html/website.com/*
+
+# Copy the contents of ~/app/public to ~/demo.venhoot.com
+cp -R ~/app/public/* ~/public_html/website.com/
+
+echo "Deployment script completed successfully."
+
+```
+
+
+To run this script, you need to have SSH access to your server and GIT already
+setup on the server.
+
+- Make the Script Executable: Open a terminal and navigate to the directory where the script is saved. Run the following command to make the script executable:
+
+    ```bash
+    chmod +x deploy.sh
+    ```
+
+- Run the Script: To run the script, run the following command:
+
+    ```bash
+    ./deploy.sh
+    ```
+

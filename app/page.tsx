@@ -1,12 +1,7 @@
 import Link from "next/link";
 import Image from "next/image";
 import { getBlogViews, getTweetCount, getStarCount } from "lib/metrics";
-import {
-  ArrowIcon,
-  GitHubIcon,
-  TwitterIcon,
-  ViewsIcon,
-} from "app/components/icons";
+import { ArrowIcon, ViewsIcon } from "app/components/icons";
 import { name, about, bio, avatar } from "lib/info";
 
 export const revalidate = 60;
@@ -37,13 +32,13 @@ export default async function HomePage() {
           priority
         />
         <div className="mt-8 md:mt-0 ml-0 md:ml-6 space-y-2 text-neutral-500 dark:text-neutral-400">
-          {"</> Total time coded:"}
           <a
             rel="noopener noreferrer"
             target="_blank"
             href="https://wakatime.com/@electrode"
             className="flex items-center gap-2"
           >
+            {"👨🏾‍💻 Total time coded:"}
             <Image
               alt={"wakatime stats"}
               src={
@@ -55,9 +50,12 @@ export default async function HomePage() {
             />
           </a>
           <Link href="/blog" className="flex items-center">
-            <ViewsIcon />
-            {views} {` blog views all time`}
+            {"👀 "} {views} {` blog views`}
           </Link>
+          {/* <Link href="/blog" className="flex items-center">
+            {"🏢 "}
+            {` owns Electrode Dev Ltd (CAC number: 7178628)`}
+          </Link> */}
         </div>
       </div>
       <p className="my-5 max-w-[600px] text-neutral-800 dark:text-neutral-200">
