@@ -1,7 +1,7 @@
 {
   "private": true,
   "scripts": {
-    "dev": "next dev",
+    "dev": "next dev -p 3001",
     "build": "next build",
     "start": "next start",
     "setup": "node ./lib/setup.mjs"
@@ -12,6 +12,7 @@
     "@types/rss": "^0.0.30",
     "@vercel/analytics": "^1.0.1",
     "@vercel/edge-config": "^0.2.1",
+    "@vercel/speed-insights": "^1.0.12",
     "clsx": "^1.2.1",
     "contentlayer": "^0.3.3",
     "date-fns": "^2.30.0",
@@ -31,6 +32,7 @@
     "rehype-slug": "^5.1.0",
     "remark-gfm": "^3.0.1",
     "rss": "^1.2.2",
+    "sass": "^1.77.8",
     "server-only": "^0.0.1",
     "shiki": "^0.14.2",
     "swr": "^2.1.5"

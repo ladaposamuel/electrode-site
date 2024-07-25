@@ -1,0 +1,358 @@
+---
+title: 'A simplified P2P auction solution using Hyperswarm RPC and Hypercores'
+publishedAt: '2024-07-23'
+summary: 'This is a simple article API service with Laravel.'
+draft: false
+---
+
+## Prerequisites
+- Node.js 16.x or higher
+- Hyperswarm
+    - https://www.npmjs.com/package/@hyperswarm/rpc
+    - https://docs.pears.com/building-blocks/hyperbee
+    - https://docs.pears.com/building-blocks/hypercore
+    - https://docs.pears.com/building-blocks/hyperdht
+    - https://www.npmjs.com/package/hp-rpc-cli
+
+
+## Difficulty Level
+- Medium
+
+## Introduction
+Hi there! I recently tackled a take-home test from a job interview, which involved creating a simplified P2P auction solution using Hyperswarm RPC and Hypercores. This was a new concept for me, so I delved into research and learning, and I'm excited to share my findings with you.
+
+### Understanding P2P and BitTorrent Protocol
+
+A **Peer-to-Peer (P2P)** network is a decentralized communication model where each participant (peer) can act as both a client and a server. This contrasts with traditional client-server models, where communication is centralized. P2P networks are known for their robustness, scalability, and efficiency in resource distribution.
+
+One of the most well-known P2P protocols is **BitTorrent**. BitTorrent allows users to distribute data across the internet efficiently. Instead of downloading a file from a single source, BitTorrent breaks the file into smaller pieces and downloads these pieces from multiple peers simultaneously. This method reduces the load on any single server and speeds up the download process.
+
+### Benefits and Use Cases of P2P Networks
+
+- **Decentralization**: No single point of failure, making the network more resilient.
+- **Scalability**: As more peers join the network, the overall capacity and speed can increase.
+- **Cost Efficiency**: Reduced need for centralized infrastructure and bandwidth costs.
+- **Privacy**: Direct peer-to-peer connections can enhance privacy and reduce the risk of data interception.
+
+**Use Cases**:
+- **File Sharing**: Efficient distribution of large files (e.g., software, media).
+- **Content Distribution**: Decentralized platforms for video streaming and content delivery.
+- **Cryptocurrency**: Underlying technology for blockchain and decentralized finance (DeFi) applications.
+- **Collaborative Platforms**: Real-time collaboration tools and distributed computing projects.
+
+### Building a P2P Auction Solution
+
+A P2P auction is a decentralized auction where bidders compete for items, with the highest bid winning. In this tutorial, we'll build a simplified P2P auction solution using Hyperswarm RPC and Hypercores.
+
+- **RPC (Remote Procedure Call)**: A method for a client to invoke functions on a server. We'll use RPC for client-server communication.
+- **Hyperswarm**: A decentralized networking protocol for node discovery and connection. We'll use it to create a P2P network.
+- **Hypercore**: A decentralized data structure for storing and sharing data. We'll use it to manage bids.
+- **Hyperbee**: Another decentralized data structure for data storage and sharing, which we'll use for bids.
+- **Hyperdht**: A decentralized data structure for data storage and sharing, also used for bids in this tutorial.
+
+
+
+## Getting Started
+
+### 1. Install Hyperswarm & other dependencies
+
+```bash
+npm install @hyperswarm/rpc hyperdht hypercore hyperbee crypto
+```
+
+### 2. Setting up a DHT network
+
+First, install hyperdht globally to run a bootstrap node:
+
+```bash
+npm install -g hyperdht
+```
+then run the bootstrap node:
+
+```bash
+hyperdht --bootstrap --host 127.0.0.1 --port 30001
+```
+you should see something like this:
+
+```bash
+Starting DHT bootstrap node...
+Bootstrap node bound to { host: '0.0.0.0', family: 4, port: 30001 }
+Fully started Hyperswarm DHT bootstrap node
+```
+
+### 3. Now some code:
+
+Development Plan: Our goal is to create a Hyperswarm network and a Hypercore. The Hyperswarm network will facilitate communication between peers, while the Hypercore will be used to store and share data.
+
+Here's the plan:
+1. **Server**: We'll create a server that listens for incoming connections and handles requests related to auctions and bids.
+2. **Client**: We'll develop a client that connects to the server and sends requests. The client will be designed to allow multiple clients to connect to the server simultaneously, enabling multiple users to bid on the same auction.
+
+#### 3.1 Setting our project files
+Below is a `tree -L 2` of my  project files:
+
+> Note: I have excluded the `node_modules` folder from the tree output, using the flag `-I` option; a full example of the tree command is: `tree -L 2 -I 'node_modules'`
+
+```bash
+    ➜  pearplay git:(master) ✗ tree -L 2 -I 'node_modules'
+    .
+    ├── README.md
+    ├── db # Database folder
+    ├── package-lock.json 
+    ├── package.json # Package.json file
+    ├── src
+    │   ├── auctionClient.js
+    │   └── auctionServer.js
+    └── utils
+        └── index.js # Utils file
+```
+
+#### 3.2 Setting up the server
+
+Inside the `src` folder, we'll create a file called `auctionServer.js`. This file will contain the server code that will listen for incoming connections and handle requests related to auctions and bids.
+
+In the `auctionServer.js` file, we'll create a function called `main` 
+that will be responsible for setting up the server. This function will create a Hypercore,
+ a Hyperbee, a DHT, and an RPC server. It will also listen for incoming connections 
+ and handle requests related to auctions and bids.
+
+
+```javascript
+"use strict";
+
+const RPC = require("@hyperswarm/rpc");
+const DHT = require("hyperdht");
+const Hypercore = require("hypercore");
+const Hyperbee = require("hyperbee");
+const crypto = require("crypto");
+
+const main = async () => {
+  const hcore = new Hypercore("./db/rpc-server");
+  const hbee = new Hyperbee(hcore, {
+    keyEncoding: "utf-8",
+    valueEncoding: "binary",
+  });
+  await hbee.ready();
+
+  let dhtSeed = (await hbee.get("dht-seed"))?.value;
+  if (!dhtSeed) {
+    dhtSeed = crypto.randomBytes(32);
+    await hbee.put("dht-seed", dhtSeed);
+  }
+  const dhtKeyPair = DHT.keyPair(dhtSeed);
+  const dht = new DHT({
+    port: 40001,
+    keyPair: DHT.keyPair(dhtSeed),
+    bootstrap: [{ host: "127.0.0.1", port: 30001 }],
+  });
+  await dht.ready();
+
+  let rpcSeed = (await hbee.get("rpc-seed"))?.value;
+  if (!rpcSeed) {
+    rpcSeed = crypto.randomBytes(32);
+    await hbee.put("rpc-seed", rpcSeed);
+  }
+
+  const rpc = new RPC({ seed: rpcSeed, dht });
+  const rpcServer = rpc.createServer();
+  await rpcServer.listen();
+
+  console.log(
+    "🎧 RPC server listening on public key -> ",
+    rpcServer.publicKey.toString("hex")
+  );
+
+};
+
+main().catch(console.error);
+```
+
+You can confirm that the server is running by running the following command in your terminal:
+
+```bash
+➜  pearplay git:(master) ✗ node src/auctionServer.js
+🎧 RPC server listening on public key ->  2e8763d1b8356df5039cd4e4ed95b2fadc1a926e63caea79b206005a553aacb9
+```
+
+#### 3.3 Setting up the client
+
+In the `auctionClient.js` file, we'll create a function called `main` that will be responsible for setting up the client. 
+This function will create a Hyperswarm instance and a Hypercore instance.
+ It will also listen for incoming connections and handle requests related to auctions and bids.
+
+To make the client more interactive, we'll use the `readline` module to create a command-line interface, and the `askQuestion` function to handle user input,
+ the `askQuestion` function is a simple wrapper around the `readline` module that allows us to ask the user for input and handle the response asynchronously.
+
+```javascript
+
+"use strict";
+
+const RPC = require("@hyperswarm/rpc");
+const DHT = require("hyperdht");
+const Hypercore = require("hypercore");
+const Hyperbee = require("hyperbee");
+const crypto = require("crypto");
+const readline = require("readline");
+
+const main = async () => {
+  const dbPath = process.argv[2] || "./db/rpc-client";
+  const hcore = new Hypercore(dbPath);
+  const hbee = new Hyperbee(hcore, {
+    keyEncoding: "utf-8",
+    valueEncoding: "binary",
+  });
+  await hbee.ready();
+
+  let dhtSeed = (await hbee.get("dht-seed"))?.value;
+  if (!dhtSeed) {
+    dhtSeed = crypto.randomBytes(32);
+    await hbee.put("dht-seed", dhtSeed);
+  }
+
+  const dhtKeyPair = DHT.keyPair(dhtSeed);
+  const dht = new DHT({
+    port: 40002,
+    keyPair: dhtKeyPair,
+    bootstrap: [{ host: "127.0.0.1", port: 30001 }],
+  });
+  await dht.ready();
+
+  let rpcSeed = (await hbee.get("rpc-seed"))?.value;
+  if (!rpcSeed) {
+    rpcSeed = crypto.randomBytes(32);
+    await hbee.put("rpc-seed", rpcSeed);
+  }
+
+  const rl = readline.createInterface({
+    input: process.stdin,
+    output: process.stdout,
+  });
+
+  const askQuestion = (question) => {
+    return new Promise((resolve) => {
+      rl.question(question, (answer) => {
+        resolve(answer);
+      });
+    });
+  };
+
+  const rpc = new RPC({ seed: rpcSeed, dht });
+  const serverPublicKey =
+    (await askQuestion("Enter server's public key (hex): ")) ||
+    "2e8763d1b8356df5039cd4e4ed95b2fadc1a926e63caea79b206005a553aacb9";
+  const rpcClient = rpc.connect(Buffer.from(serverPublicKey, "hex"));
+
+  const rpcServer = rpc.createServer();
+  await rpcServer.listen();
+  await dht.announce(rpcServer.publicKey, dhtKeyPair);
+
+  console.log(
+    "RPC client listening on public key:",
+    rpcServer.publicKey.toString("hex")
+  );
+
+
+  const main = async () => {
+
+    // auction commands
+ 
+  };
+
+  main();
+};
+
+main().catch(console.error);
+
+```
+
+To run the client, you can use the following command, which will start the client and connect to the server with the specified public key:
+
+```bash
+➜  pearplay git:(master) ✗ node src/auctionClient.js
+RPC client listening on public key:  2e8763d1b8356df5039cd4e4ed95b2fadc1a926e63caea79b206005a553aacb9
+
+Enter server\'s public key (hex): 2e8763d1b8356df5039cd4e4ed95b2fadc1a926e63caea79b206005a553aacb9
+
+```
+
+#### 3.3 Setting up the auction logic
+
+Now we have successfully set up the server and client, and confirmed they connect to each other. 
+The next step is to implement the auction functionality. Let's start by creating a new auction and placing a bid.
+
+I decided to design the auction logic as a class, which will allow me to encapsulate the logic and make it more modular. 
+The `Auction` class will have the following methods:
+
+- `createAuction()`: This method will create a new auction and store it in the Hyperbee.
+- `placeBid()`: This method will allow users to place bids on the auction.
+- `closeAuction()`: This method will close the auction and distribute the winning bid to the highest bidder.
+
+Here's the code for the `Auction` class:
+
+```javascript
+"use strict";
+
+const RPC = require("@hyperswarm/rpc");
+const DHT = require("hyperdht");
+const Hypercore = require("hypercore");
+const Hyperbee = require("hyperbee");
+const crypto = require("crypto");
+const readline = require("readline");
+
+class Auction {
+  constructor(hcore, hbee, rpc, dht) {
+    this.hcore = hcore;
+    this.hbee = hbee;
+    this.rpc = rpc;
+    this.dht = dht;
+  }
+
+  async createAuction() {
+    const auctionId = crypto.randomBytes(32);
+    const auction = {
+      id: auctionId,
+      bids: [],
+      winningBid: null,
+    };
+    await this.hbee.put(auctionId, auction);
+    console.log(`Auction created with ID: ${auctionId.toString("hex")}`);
+  }
+
+  async placeBid(auctionId, bid) {
+    const auction = await this.hbee.get(auctionId);
+    if (!auction) {                      // Check if auction exists
+      console.log("Auction not found");
+      return;
+    }
+    auction.bids.push(bid);
+    await this.hbee.put(auctionId, auction);
+    console.log(`Bid placed: ${bid}`);
+  }
+
+  async closeAuction(auctionId) {
+    const auction = await this.hbee.get(auctionId);
+    if (!auction) {                      // Check if auction exists
+      console.log("Auction not found");
+      return;
+    }
+    auction.winningBid = auction.bids.reduce((winningBid, bid) => {
+      if (!winningBid || bid.amount > winningBid.amount) {
+        return bid;
+      }
+      return winningBid;
+    });
+    await this.hbee.put(auctionId, auction);
+    console.log(`Auction closed with winning bid: ${auction.winningBid}`);
+  }
+}    
+
+module.exports = Auction;
+
+```
+
+Now we have the `Auction` class set up, let's move on to the next step and implement the auction server logic.
+
+#### 3.4 Setting up the auction server logic
+
+The auction server's role would be to listen for incoming connections and handle requests related to auctions and bids, store the auctions in the Hyperbee, and distribute the winning bid to the highest bidder.
+The server would also need to handle the auction creation, bid placement, and auction closure, and broadcast the auction details to other peers in the network.

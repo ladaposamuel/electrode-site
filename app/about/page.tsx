@@ -1,4 +1,5 @@
 import Image from "next/image";
+import { getResumeLink } from "utils";
 
 const frameworks = [
   { name: "PHP", color: "blue" },
@@ -57,10 +58,7 @@ export default function AboutPage() {
       <p className=" text-neutral-800 dark:text-neutral-200">
         {stacks.map((stack, index) => (
           <>
-            <Badge
-              key={index}
-              href={`https://drive.google.com/file/d/1ABhmKn6neWu69_1LF2vKreI2jEClMuDM/view?usp=share_link`}
-            >
+            <Badge key={index} href={getResumeLink()}>
               {`${stack}`}
             </Badge>{" "}
           </>

@@ -1,0 +1,8 @@
+
+
+.button {
+  @apply flex items-center hover:text-neutral-700 dark:hover:text-neutral-200 transition-all;
+  border: 1px dashed #1375b6;
+  padding: 8px;
+  border-radius: 15px;
+}
