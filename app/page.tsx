@@ -60,7 +60,7 @@ export default async function HomePage() {
               {"👀 Blog views:"} {views}
             </Link>
 
-            <Link href="" className="">
+            <Link href="#." className="">
               {"👷🏾 "}
               Currently building <Link href="https://venhoot.com" className="underline">Venhoot</Link>
               , a platform for users to review and share their experiences with
