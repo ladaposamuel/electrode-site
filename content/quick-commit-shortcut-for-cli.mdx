@@ -1,0 +1,63 @@
+---
+title: 'A Quick Commit Shortcut for CLI'
+publishedAt: '25, Aug 2024'
+summary: 'A guide to creating efficient git commit shortcuts for increased productivity.'
+draft: false
+---
+
+Have you ever admired the consistent commit activity of prolific developers on GitHub? Take Taylor Otwell, the creator of Laravel, for example:
+
+![Taylor Otwell's GitHub Activity Graph](https://i.imgur.com/c0gQDQ1.png)
+
+Seeing such graphs often inspires me to commit more regularly. As a long-time git user, I'm familiar with the standard commands, but typing them repeatedly can be tedious. The typical commit process looks like this:
+
+```bash
+git add .
+git commit -m "commit message"
+git push
+```
+
+To streamline this process, I've developed a couple of shortcuts that significantly speed up my workflow.
+
+## Simple Shortcut: The 'save' Command
+
+First, I created a basic alias in my `.zshrc` file:
+
+```bash
+alias save="git add . && git commit -m 'x' && git push"
+```
+
+This allows me to simply type `save` to stage, commit, and push all changes. However, I wanted something more flexible and cool.
+
+## Advanced Shortcut: The 'yolo' Function
+
+To allow for custom commit messages, I created a function in my `.zshrc` file:
+
+```bash
+function yolo() {
+  local MESSAGE="${@:2}"
+  personalgit
+  git pull --rebase
+  git add .
+  git commit -m "${MESSAGE}"
+  git push
+}
+```
+
+Now I can use `yolo -m 'Your commit message here'` to quickly commit and push changes with a custom message.
+
+This function does the following:
+1. Accepts a commit message as an argument
+2. Runs a personal git configuration (if needed)
+3. Pulls and rebases to ensure we're up-to-date
+4. Stages all changes
+5. Commits with the provided message
+6. Pushes the changes
+
+## Conclusion
+
+By implementing these shortcuts, you can significantly streamline your git workflow. The 'yolo' function, in particular, offers a balance of speed and flexibility, allowing for quick commits with custom messages.
+
+Remember, the key to a healthy GitHub activity graph isn't just about the tools, but about forming the habit of committing regularly. These shortcuts remove friction from the process, making it easier to maintain that habit.
+
+Happy coding, and may your GitHub graphs be ever green!
