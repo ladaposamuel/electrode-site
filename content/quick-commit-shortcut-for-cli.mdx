@@ -1,5 +1,5 @@
 ---
-title: 'A Quick Commit Shortcut for CLI'
+title: 'A Quick GIT Commit Shortcut for CLI'
 publishedAt: '25, Aug 2024'
 summary: 'A guide to creating efficient git commit shortcuts for increased productivity.'
 draft: false
@@ -45,6 +45,15 @@ function yolo() {
 ```
 
 Now I can use `yolo -m 'Your commit message here'` to quickly commit and push changes with a custom message.
+
+Here's an example of how it works, I pushed this article to GitHub:
+
+```bash
+➜  electrode git:(develop) ✗ yolo -m "Push quick commit article"
+[develop 3c64c51] Push quick commit article
+ 2 files changed, 66 insertions(+), 2 deletions(-)
+ create mode 100644 content/quick-commit-shortcut-for-cli.mdx
+ ```
 
 This function does the following:
 1. Accepts a commit message as an argument
