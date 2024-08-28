@@ -1,0 +1,453 @@
+---
+title: 'Bottling Trust: How Manufacturers Can Use QR Codes to Stamp Out Fake Drinks'
+publishedAt: '2024-08-28'
+summary: 'Exploring an innovative QR code solution to combat counterfeit beverages, from concept to implementation.'
+draft: false
+---
+
+
+## Introduction
+
+Picture this: You're about to enjoy your favorite beverage, but there's a nagging doubt - is it the real deal? Counterfeit drinks are more than just a nuisance; they're a global problem costing billions and potentially risking consumers' health. But what if there's a simple tech solution that could put our minds at ease? Enter the world of QR code drink verification.
+
+In this article, we'll dive into a game-changing method that legitimate drink manufacturers can employ to combat fake products. It's not about fancy gadgets in consumers' hands - it's about empowering manufacturers to give each bottle a unique, scannable identity.
+
+> Don't worry if you're not tech-savvy; we'll break down this solution in plain English. And for those who love to tinker with code, we'll provide some technical details to spark your interest.
+
+## The Growing Threat of Fake Drinks
+
+Before we explore the solution, let's understand the scope of the problem. Counterfeit beverages are a significant and growing issue, particularly in countries like Nigeria:
+
+- In May 2024, NAFDAC (National Agency for Food and Drug Administration and Control) [busted a fake drink manufacturer in Lagos](https://pmnewsnigeria.com/2024/05/09/nafdac-busts-fake-drink-manufacturer-chinedu-okafor-in-lagos/), highlighting the ongoing battle against counterfeit beverages.
+
+- The police have been active in combating this issue, [uncovering a fake drink factory in Lagos](https://punchng.com/police-bust-fake-drink-factory-in-lagos-arrest-four/) and [busting another producing fake alcohol in Delta State](https://dailypost.ng/2024/05/03/police-bust-factory-producing-fake-alcohol-in-delta/).
+
+- NAFDAC has made significant strides, [uncovering large hauls of fake wines, soft drinks, and other consumables](https://nafdac.gov.ng/nafdac-bursts-large-hauls-of-fake-wines-soft-drinks-and-consumables/), demonstrating the scale of the problem.
+
+- The issue has even caught the attention of celebrities, with [musician Timaya publicly condemning fake alcoholic drink sellers](https://pmnewsnigeria.com/2024/07/16/timaya-rains-curses-on-fake-alcoholic-drinks-sellers/).
+
+The consequences of this problem extend beyond economic losses. Health experts warn that [fake beverages increase the risk of liver and cardiovascular diseases](https://punchng.com/fake-beverages-increases-risk-of-liver-cardiovascular-diseases-agency-warns/), underlining the urgent need for effective solutions.
+
+
+
+Also Motivated by this tweet I stumbled upon:
+![https://x.com/AjeboDanny/status/1828704325041872966](https://i.imgur.com/h3PmlOE.jpeg)
+Tweet: [https://x.com/AjeboDanny/status/1828704325041872966](https://x.com/AjeboDanny/status/1828704325041872966)
+
+
+
+## How It Works
+
+Let's break down the process of our QR code verification system:
+
+1. Manufacturers generate a unique QR code for each bottle.
+2. This code is stored in a secure central database.
+3. The QR code is attached under the cork or on the bottle's seal.
+4. Consumers scan the code with their smartphones.
+5. The scan directs them to the manufacturer's verified domain.
+6. The website displays production details and authenticity confirmation.
+
+Here's a visual representation of the system:
+
+```
+MANUFACTURER                     BOTTLE                     CONSUMER
+         |                               |                           |
+     1.[Generate QR]                     |                           |
+         |                               |                           |
+     2.[Store in DB]                     |                           |
+         |                               |                           |
+         |------------------------------>|                           |
+     3.[Attach QR under cork/seal]       |                           |
+         |                               |                           |
+         |                               |    4.[Purchase Bottle]    |
+         |                               |<--------------------------|
+         |                               |                           |
+         |                               |    5.[Scan QR Code]       |
+         |                               |<--------------------------|
+         |                               |                           |
+         |<------------------------------------------------------------
+         |              6.[Send Verification Request]                |
+         |                                                           |
+    7.[Check DB]                                                     |
+         |                                                           |
+         |------------------------------------------------------------>
+         |        8.[Display Verification on Official Domain]        |
+         |                                                           |
+         |                               |                           |
+         |                               |9.[View Verification Info] |
+         |                               |    - Production Date      |
+         |                               |    - Production Time      |
+         |                               |    - Manager Signature    |
+         |                               |                           |
+ 10.[Confirm Authentic!]                 |                           |
+```
+
+## Advantages and Challenges
+
+### Advantages
+- Enhanced Authentication: Each bottle receives a unique identifier, significantly reducing the possibility of large-scale counterfeiting.
+- Consumer Empowerment: Buyers can easily verify the authenticity of their purchases using their smartphones.
+- Real-Time Verification: The system provides instant authentication, potentially intercepting counterfeit products at the point of sale.
+- Improved Traceability: Production details enable better quality control and supply chain management.
+- Brand Protection: Manufacturers can better safeguard their reputation and revenue.
+
+### Challenges
+- Implementation Costs: Setting up the system could be expensive, particularly for smaller manufacturers.
+- Ongoing Maintenance: Continuous upkeep and robust security measures are resource-intensive.
+- Consumer Adoption: The system's effectiveness relies on consumers actually scanning the codes.
+- Technological Barriers: Not all consumers may have smartphones or be comfortable with QR codes.
+- Security Risks: Improperly secured QR codes could potentially be copied or tampered with.
+
+## The Technical Side: Implementing with Go
+
+Now, let's dive into the technical implementation. We've chosen Go (Golang) for this project due to its high performance, excellent concurrency support, and ability to handle the generation of millions of QR codes daily.
+
+### Why Go?
+
+1. **High Performance**: Ideal for generating and verifying large volumes of QR codes.
+2. **Concurrency**: Go's goroutines allow for easy implementation of concurrent operations.
+3. **Strong Standard Library**: Includes built-in HTTP servers and cryptographic functions.
+4. **Compilation**: Compiles to a single binary, simplifying deployment.
+5. **Database Support**: Excellent drivers for various databases.
+6. **Security Features**: Less prone to certain types of security vulnerabilities.
+
+### Core Components
+
+Let's break down the key components of our Go implementation:
+
+#### 1. QR Code Generation with Encryption
+
+```go
+
+package main
+
+import (
+	"bytes"
+	"crypto/aes"
+	"crypto/cipher"
+	"crypto/rand"
+	"encoding/base64"
+	"fmt"
+	"image/png"
+	"io"
+	"strings"
+	"time"
+
+	"encoding/hex"
+
+	"github.com/boombuler/barcode"
+	"github.com/boombuler/barcode/qr"
+)
+
+var secretKey = []byte("a-32-byte-secret-key-for-aes-256") // Must be 32 bytes for AES-256
+
+func encrypt(plaintext string) (string, error) {
+	block, err := aes.NewCipher(secretKey)
+	if err != nil {
+		return "", err
+	}
+
+	ciphertext := make([]byte, aes.BlockSize+len(plaintext))
+	iv := ciphertext[:aes.BlockSize]
+	if _, err := io.ReadFull(rand.Reader, iv); err != nil {
+		return "", err
+	}
+
+	stream := cipher.NewCFBEncrypter(block, iv)
+	stream.XORKeyStream(ciphertext[aes.BlockSize:], []byte(plaintext))
+
+	return base64.URLEncoding.EncodeToString(ciphertext), nil
+}
+
+func decrypt(ciphertext string) (string, error) {
+	data, err := base64.URLEncoding.DecodeString(ciphertext)
+	if err != nil {
+		return "", err
+	}
+
+	block, err := aes.NewCipher(secretKey)
+	if err != nil {
+		return "", err
+	}
+
+	if len(data) < aes.BlockSize {
+		return "", fmt.Errorf("ciphertext too short")
+	}
+	iv := data[:aes.BlockSize]
+	data = data[aes.BlockSize:]
+
+	stream := cipher.NewCFBDecrypter(block, iv)
+	stream.XORKeyStream(data, data)
+
+	return string(data), nil
+}
+
+func base64ToImg(code barcode.Barcode) (string, error) {
+	// Create a buffer to hold the PNG image
+	var buf bytes.Buffer
+
+	// Encode the barcode as a PNG image and write it to the buffer
+	if err := png.Encode(&buf, code); err != nil {
+		return "", err
+	}
+
+	// Encode the buffer's content as a base64 string
+	return base64.StdEncoding.EncodeToString(buf.Bytes()), nil
+}
+
+func generateUniqueID() string {
+	// Generate a random 16-byte slice
+	b := make([]byte, 16)
+	_, err := rand.Read(b)
+	if err != nil {
+		// Handle error
+		return ""
+	}
+
+	// Convert the byte slice to a hex-encoded string
+	return hex.EncodeToString(b)
+}
+
+
+func generateQRCode(product, location, supervisor string) (string, string, error) {
+	currentTime := time.Now().Format(time.RFC3339)
+	data := fmt.Sprintf("%s - %s - %s - %s", product, currentTime, location, supervisor)
+
+	// Encrypt the data
+	encryptedData, err := encrypt(data)
+	if err != nil {
+		return "", "", fmt.Errorf("encryption error: %v", err)
+	}
+
+	// Generate a unique identifier
+	uniqueID := generateUniqueID()
+
+	// Combine the unique ID and encrypted data
+	qrContent := fmt.Sprintf("%s|%s", uniqueID, encryptedData)
+
+	// Generate QR code with the combined content
+	qrCode, err := qr.Encode(qrContent, qr.M, qr.Auto)
+	if err != nil {
+		return "", "", fmt.Errorf("QR code generation error: %v", err)
+	}
+
+	qrCode, err = barcode.Scale(qrCode, 200, 200)
+	if err != nil {
+		return "", "", fmt.Errorf("QR code scaling error: %v", err)
+	}
+
+	// Convert to base64 for storage
+	base64Img, err := base64ToImg(qrCode)
+	if err != nil {
+		return "", "", fmt.Errorf("QR code image encoding error: %v", err)
+	}
+
+	return qrContent, base64Img, nil
+}
+
+func main() {
+	tests := []struct {
+		product    string
+		location   string
+		supervisor string
+	}{
+		{"VSOP", "Victoria Island Manufacturing Unit 4 Lagos", "Samuel Ladapo"},
+		{"VSOP", "Victoria Island Manufacturing Unit 4 Lagos", "Jane Doe"},
+		{"VSOP", "Victoria Island Manufacturing Unit 3 Lagos", "John Smith"},
+	}
+
+	for _, test := range tests {
+		fmt.Printf("Generating QR code for Product: %s, Location: %s, Supervisor: %s\n", test.product, test.location, test.supervisor)
+
+		qrContent, qrCodeImg, err := generateQRCode(test.product, test.location, test.supervisor)
+		if err != nil {
+			fmt.Println("Error generating QR code:", err)
+			continue
+		}
+
+		fmt.Println("Generated QR Code (Base64 Image):", qrCodeImg)
+
+		// Decrypt the QR code content
+		parts := strings.SplitN(qrContent, "|", 2)
+		if len(parts) != 2 {
+			fmt.Println("Invalid QR code format")
+			continue
+		}
+
+		encryptedData := parts[1]
+		decryptedData, err := decrypt(encryptedData)
+		if err != nil {
+			fmt.Println("Error decrypting QR code data:", err)
+			continue
+		}
+
+		fmt.Println("Decrypted Data:", decryptedData)
+		fmt.Println()
+	}
+}
+
+```
+
+## Sample Output:
+```bash
+➜  drinks go run main.go
+Generating QR code for Product: VSOP, Location: Victoria Island Manufacturing Unit 4 Lagos, Supervisor: Samuel Ladapo
+Generated QR Code (Base64 Image): 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
+Decrypted Data: VSOP - 2024-08-28T14:40:20+01:00 - Victoria Island Manufacturing Unit 4 Lagos - Samuel Ladapo
+
+Generating QR code for Product: VSOP, Location: Victoria Island Manufacturing Unit 4 Lagos, Supervisor: Jane Doe
+Generated QR Code (Base64 Image): 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
+Decrypted Data: VSOP - 2024-08-28T14:40:20+01:00 - Victoria Island Manufacturing Unit 4 Lagos - Jane Doe
+
+Generating QR code for Product: VSOP, Location: Victoria Island Manufacturing Unit 3 Lagos, Supervisor: John Smith
+Generated QR Code (Base64 Image): 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
+Decrypted Data: VSOP - 2024-08-28T14:40:20+01:00 - Victoria Island Manufacturing Unit 3 Lagos - John Smith
+
+
+```
+
+This function encrypts product information, generates a unique identifier, and creates a QR code containing both.
+
+#### 2. Web-based Verification
+
+On the user's device, they scan the QR code with their smartphone's camera, and the system verifies the authenticity of the product.
+When they scan the QR code, they are redirected to the manufacturer's verified domain, e.g `https://hennessy.com/verify?content=uniqueID`. 
+
+
+```go
+
+// Assume these functions are defined elsewhere in your code
+func checkUniqueIDExists(uniqueID string) (bool, error) {
+	// Implementation to check if the unique ID exists in the database
+}
+
+func markUniqueIDAsUsed(uniqueID string) error {
+	// Implementation to mark the unique ID as used in the database
+}
+
+func verifyQRCode(w http.ResponseWriter, r *http.Request) {
+	qrContent := r.URL.Query().Get("content")
+	parts := strings.Split(qrContent, "|")
+	if len(parts) != 2 {
+		http.Error(w, "Invalid QR code format", http.StatusBadRequest)
+		return
+	}
+
+	uniqueID, encryptedData := parts[0], parts[1]
+
+	// Verify the unique ID exists in the database
+	exists, err := checkUniqueIDExists(uniqueID)
+	if err != nil {
+		http.Error(w, "Database error", http.StatusInternalServerError)
+		return
+	}
+	if !exists {
+		http.Error(w, "Invalid or used QR code", http.StatusNotFound)
+		return
+	}
+
+	// Decrypt the data
+	decryptedData, err := decrypt(encryptedData)
+	if err != nil {
+		http.Error(w, "Decryption error", http.StatusInternalServerError)
+		return
+	}
+
+	// Mark the unique ID as used in the database
+	err = markUniqueIDAsUsed(uniqueID)
+	if err != nil {
+		log.Printf("Error marking unique ID as used: %v", err)
+	}
+
+	// Return the verification result
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(map[string]string{
+		"status": "verified",
+		"data":   decryptedData, // The decrypted product information e.g "Drinks - 2023-01-01 - Victoria Island Manufacturing Unit 1 Lagos - Samuel Ladapo"
+	})
+}
+```
+
+This function handles the verification process, checking the unique ID, decrypting the data, and returning the result.
+
+#### 3. Concurrent Generation
+
+In a case where we need to generate a large number of QR codes, we can use Go's concurrency capabilities to speed up the processing. Here's an example of how we can generate millions of QR codes concurrently:
+
+To generate up to 2 million QR codes for example and store them in the database efficiently, you need to ensure that the database operations are handled concurrently and efficiently. Here is the complete function with some improvements:
+Use a buffered channel to limit the number of concurrent goroutines.
+Use a transaction to batch insert operations for better performance.
+
+```go
+func generateQRCodes(w http.ResponseWriter, r *http.Request) {
+	count := 2000000 // Number of QR codes to generate
+	var wg sync.WaitGroup
+	concurrencyLimit := 1000 // Limit the number of concurrent goroutines
+	sem := make(chan struct{}, concurrencyLimit)
+
+	for i := 0; i < count; i++ {
+		wg.Add(1)
+		sem <- struct{}{} // Acquire a token
+
+		go func(i int) {
+			defer wg.Done()
+			defer func() { <-sem }() // Release the token
+
+			product := fmt.Sprintf("Product%d", i)
+			location := "Factory A"
+			supervisor := "John Doe"
+			qrContent, qrCodeImg, err := generateQRCode(product, location, supervisor)
+			if err != nil {
+				log.Printf("Error generating QR code: %v", err)
+				return
+			}
+
+			uniqueID := fmt.Sprintf("PROD%d", time.Now().UnixNano())
+
+			// Store in database
+			_, err = db.Exec("INSERT INTO products (unique_id, qr_code) VALUES ($1, $2)", uniqueID, qrCodeImg)
+			if err != nil {
+				log.Printf("Error storing in database: %v", err)
+			}
+		}(i)
+	}
+
+	wg.Wait()
+	fmt.Fprintf(w, "Generated %d QR codes", count)
+}
+```
+
+This function demonstrates Go's concurrency capabilities, generating millions of QR codes simultaneously.
+
+### Security Considerations
+
+- Use HTTPS for all web communications.
+- Implement rate limiting on the verification endpoint.
+- Use secure key management practices, possibly involving Hardware Security Modules (HSMs).
+- Regularly rotate encryption keys.
+- Maintain detailed audit logs.
+- Ensure proper database security and backups.
+- Implement strict input validation to prevent common vulnerabilities.
+
+## Real-World Impact
+
+The implementation of this system could have significant real-world implications:
+
+1. **Consumer Protection**: Helps protect consumers from potentially harmful counterfeit drinks.
+2. **Brand Protection**: Makes it significantly harder for counterfeiters to replicate products convincingly.
+3. **Law Enforcement Aid**: Assists in identifying and tracking counterfeit operations.
+4. **Economic Impact**: Supports legitimate businesses and potentially boosts tax revenues from legal sales.
+5. **Public Health**: Plays a role in public health protection by reducing the circulation of potentially dangerous fake drinks.
+
+## Conclusion
+
+This Go-based implementation, with its encrypted QR codes and web-based verification system, provides a high-performance, secure solution to combat counterfeit drinks. By leveraging Go's features, we can generate millions of unique, encrypted QR codes daily, each tied to specific product information.
+
+While technology alone can't completely eradicate the problem of fake drinks, this system presents a significant barrier to counterfeiters. It empowers both manufacturers and consumers in the fight against counterfeit beverages, potentially saving lives and protecting brand integrity.
+
+As we continue to refine and expand this system, we look forward to seeing its impact on the beverage industry and consumer safety. The journey from concept to implementation shows that with the right tools and approach, we can make significant strides in addressing even the most challenging problems in product authentication and consumer protection.
+
+## Resources
+
+- [QR Codes: The Ultimate Guide](https://www.qr-code-guide.com/)
+- [Go: The Complete Developer's Guide](https://go.dev/doc/tutorial/getting-started)
