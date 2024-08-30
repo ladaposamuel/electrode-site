@@ -52,10 +52,34 @@ export default function AboutPage() {
     <section>
       <h1 className="font-bold text-3xl font-serif">About Me</h1>
       <p className="my-5 text-neutral-800 dark:text-neutral-200">
-        {`I am a versatile developer with a passion for crafting exceptional web applications. 
-        My journey has led me through a diverse array of technologies and tools, including:`}
+        {`I'm a passionate Full-Stack Developer with over 5 years of experience, dedicated to crafting exceptional web applications. My journey in software development has been driven by an insatiable curiosity and a genuine love for problem-solving.`}
       </p>
-      <p className=" text-neutral-800 dark:text-neutral-200">
+
+      <h2 className="font-bold text-2xl font-serif mt-8">What I Can Do</h2>
+      <ul className="list-disc pl-5 mt-4 text-neutral-800 dark:text-neutral-200">
+        <li>
+          Develop scalable and efficient backend systems using PHP, Laravel,
+          Node.js, and Express.js
+        </li>
+        <li>
+          Create responsive and interactive front-end applications with React,
+          Vue.js, and Next.js
+        </li>
+        <li>
+          Design and optimize database structures using MySQL, PostgreSQL, and
+          MongoDB
+        </li>
+        <li>Implement RESTful APIs and integrate third-party services</li>
+        <li>Set up and manage cloud infrastructure on AWS and DigitalOcean</li>
+        <li>Implement CI/CD pipelines and follow Agile methodologies</li>
+        <li>
+          Integrate AI and machine learning solutions, such as OpenAI, into
+          applications
+        </li>
+      </ul>
+
+      <h2 className="font-bold text-2xl font-serif mt-8">My Tech Stack</h2>
+      <p className="text-neutral-800 dark:text-neutral-200 mt-4">
         {stacks.map((stack, index) => (
           <>
             <Badge key={index} href={getResumeLink()}>
@@ -65,10 +89,25 @@ export default function AboutPage() {
         ))}
       </p>
 
-      <p className=" text-neutral-800 dark:text-neutral-200 pt-5">
-        {`Each of these stacks has enriched my skill set and allowed me to create innovative solutions.
-         From the elegance of JavaScript and the power of React, to the robustness of PostgreSQL and the scalability of AWS,
-          I bring a dynamic blend of expertise to every project. Let's collaborate and bring your ideas to life!`}
+      <h2 className="font-bold text-2xl font-serif mt-8">
+        Passion for Technology
+      </h2>
+      <p className="mt-4 text-neutral-800 dark:text-neutral-200">
+        {`My enthusiasm for software development goes beyond just writing code. I'm constantly exploring new technologies, attending tech conferences, and contributing to open-source projects. This passion drives me to stay at the forefront of industry trends and best practices, ensuring that I can deliver cutting-edge solutions to every project I undertake.`}
+      </p>
+
+      <h2 className="font-bold text-2xl font-serif mt-8">Beyond Coding</h2>
+      <p className="mt-4 text-neutral-800 dark:text-neutral-200">
+        {`When I'm not immersed in code, you can find me on the paintball field every Sunday. This high-energy sport not only provides an exhilarating break from the digital world but also hones my strategic thinking and teamwork skills – qualities that I bring back to my development projects.`}
+      </p>
+
+      <blockquote className="border-l-4 border-neutral-300 dark:border-neutral-700 pl-4 mt-8 italic text-neutral-800 dark:text-neutral-200">
+        "The only way to do great work is to love what you do. If you haven't found it yet, keep looking. Don't settle." - Steve Jobs
+      </blockquote>
+
+
+      <p className="mt-8 text-neutral-800 dark:text-neutral-200">
+        {`I'm always excited to take on new challenges and collaborate on innovative projects. Whether you need a scalable backend system, an intuitive user interface, or a complete full-stack solution, I'm ready to bring your ideas to life with passion and expertise.`}
       </p>
     </section>
   );

@@ -22,34 +22,48 @@ const formatDate = (date: string | Date): string => {
 
 export default async function BlogPage() {
   const allViews = await getViewsCount();
+
+  // Group posts by year
+  const postsByYear = allBlogs
+    .filter(post => !post?.draft)
+    .sort((a, b) => new Date(b.publishedAt).getTime() - new Date(a.publishedAt).getTime())
+    .reduce((acc, post) => {
+      const year = new Date(post.publishedAt).getFullYear();
+      if (!acc[year]) {
+        acc[year] = [];
+      }
+      acc[year].push(post);
+      return acc;
+    }, {} as Record<number, typeof allBlogs>);
+
+  // Sort years in descending order
+  const sortedYears = Object.keys(postsByYear).sort((a, b) => Number(b) - Number(a));
+
   return (
     <section>
       <h1 className="font-bold text-3xl font-serif mb-5">Blog</h1>
-      {allBlogs
-        .filter(post => !post?.draft)
-        .sort((a, b) => {
-          if (new Date(a.publishedAt) > new Date(b.publishedAt)) {
-            return -1;
-          }
-          return 1;
-        })
-        .map((post) => (
-          <Link
-            key={post.slug}
-            className="flex flex-col space-y-1 mb-4"
-            href={`/blog/${post.slug}`}
-          >
-            <div className="w-full flex flex-col">
-              <p>⥱ {post.title}</p>
-              <ViewCounter
-                post={post}
-                allViews={allViews}
-                trackView={false}
-                showTime={formatDate(post.publishedAt)}
-              />
-            </div>
-          </Link>
-        ))}
+      {sortedYears.map((year) => (
+        <div key={year} className="mb-8">
+          <h2 className="text-2xl font-bold mb-4">{year}</h2>
+          {postsByYear[Number(year)].map((post) => (
+            <Link
+              key={post.slug}
+              className="flex flex-col space-y-1 mb-4"
+              href={`/blog/${post.slug}`}
+            >
+              <div className="w-full flex flex-col">
+                <p>⥱ {post.title}</p>
+                <ViewCounter
+                  post={post}
+                  allViews={allViews}
+                  trackView={false}
+                  showTime={formatDate(post.publishedAt)}
+                />
+              </div>
+            </Link>
+          ))}
+        </div>
+      ))}
     </section>
   );
 }

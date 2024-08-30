@@ -1,35 +1,90 @@
-import {
-    ArrowIcon
-  } from 'app/components/icons';
+import Link from "next/link";
+import { getResumeLink } from "utils";
 
-  import { getResumeLink } from "utils";
+export default function Works() {
+  const projects = [
+    {
+      name: "Venhoot",
+      description: "Online review and rating system for Instagram businesses",
+      href: "/venhoot",
+    },
+  ];
 
-export default function Contact() {
+  const workExperience = [
+    {
+      name: "Audiomack.com",
+      position: "Fullstack Software Developer",
+      period: "October 2020 - Present",
+      href: "https://audiomack.com",
+    },
+    {
+      name: "Abrahams Consulting Limited",
+      position: "Full Stack Developer",
+      period: "January 2018 - January 2024",
+      href: getResumeLink(),
+    },
+    {
+      name: "Jackocoins.com",
+      position: "Full Stack Developer",
+      period: "January 2018 - January 2023",
+      href: "https://jackocoins.com",
+    },
+    {
+      name: "GigaLayer.com",
+      position: "Full Stack Developer",
+      period: "November 2019 - November 2020",
+      href: "https://gigalayer.com",
+    },
+  ];
 
+  return (
+    <section>
+      <h1 className="font-bold text-3xl font-serif mb-5">My Works</h1>
 
-    return (
-      <section>
-        <h1 className="font-bold text-3xl font-serif">My Works</h1>
-        <i>And things I'm currenty working on</i>
-
-        <p className="my-5 text-neutral-800 dark:text-neutral-200">
-          {`I am Currently working on something cool for this page 😎, `}
-        </p>
-
-        <p className="my-5 text-neutral-800 dark:text-neutral-200">
-          {`But you always welcome to check out my: `}
-
-          <a
-            className="flex items-center hover:text-neutral-700 dark:hover:text-neutral-200 transition-all"
-            rel="noopener noreferrer"
-            target="_blank"
-            href={getResumeLink()}
+      <div className="mb-8">
+        <h2 className="text-2xl font-bold mb-4">Projects</h2>
+        {projects.map((project, index) => (
+          <Link
+            key={index}
+            className="flex flex-col space-y-1 mb-4"
+            href={project.href}
           >
-            <ArrowIcon />
-            Resume
-          </a>
-        </p>
-      </section>
-    );
-  }
-  
+            <div className="w-full flex flex-col">
+              <p className="font-medium">⥱ {project.name}</p>
+              <p className="text-gray-600">{project.description}</p>
+            </div>
+          </Link>
+        ))}
+        <i className="text-gray-600 text-sm">
+          Working on some other cool secret project I'm going to list soon.
+        </i>
+      </div>
+
+      <div className="mb-8">
+        <h2 className="text-2xl font-bold mb-4">Work Experience</h2>
+        {workExperience.map((work, index) => (
+          <Link
+            key={index}
+            className="flex flex-col space-y-1 mb-4"
+            href={work.href}
+          >
+            <div className="w-full flex flex-col">
+              <p className="font-medium">⥱ {work.name}</p>
+              <p className="text-gray-600">
+                {work.position} ({work.period})
+              </p>
+            </div>
+          </Link>
+        ))}
+        See my [
+        <Link
+          href={getResumeLink()}
+          className="text-orange-600 hover:underline"
+        >
+          resume
+        </Link>
+        ] for more details.
+      </div>
+    </section>
+  );
+}
