@@ -1,3 +1,3 @@
-export const getResumeLink = (): string | URL => {
+export const getResumeLink = (): string => {
     return `https://bit.ly/4cSobIZ`;
   };

@@ -34,7 +34,7 @@ export default async function HomePage() {
                         className="rounded-full grayscale"
                         src={avatar}
                         placeholder="blur"
-                        width={100}
+                        width={120}
                         priority
                     />
                     <div className="mt-8 md:mt-0 ml-0 md:ml-6 space-y-2 text-neutral-500 dark:text-neutral-400">

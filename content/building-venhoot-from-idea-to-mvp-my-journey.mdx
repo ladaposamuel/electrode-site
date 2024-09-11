@@ -1,54 +1,94 @@
 ---
 title: 'Building Venhoot From Idea to MVP - A Developer''s Journey'
 publishedAt: '2024-08-25'
-summary: 'My journey to build Venhoot from idea to MVP, what I learned, challenges I faced, and how I overcame them.'
+summary: 'My journey to build Venhoot from idea to MVP, what I learned, challenges I face, and how I plan to overcome them.'
 draft: true
 ---
 
+As a developer residing in an area with limited local shopping options, I found myself increasingly reliant on online shopping, particularly through Instagram. The platform's visual appeal and features like collections made it ideal for browsing and bookmarking items. However, my experiences with Instagram vendors were decidedly mixed.
 
-As a developer residing in an area with limited local shopping options, I found myself increasingly reliant on online shopping,
-particularly through Instagram. The platform's visual appeal and features like collections made it ideal for browsing
-and bookmarking items. However, my experiences with Instagram vendors were decidedly mixed.
+While some vendors provided excellent service, others proved unreliable. A particularly frustrating incident involved a four-month wait for a flower glass pot. The vendor repeatedly broke promises while continuing to advertise quick delivery to new customers. My attempts to warn potential buyers were met with comment deletions and account blocks.
 
-While some vendors provided excellent service, others proved unreliable. A particularly frustrating incident
-involved a four-month wait for a flower glass pot. The vendor repeatedly broke promises while continuing to advertise
-quick delivery to new customers. My attempts to warn potential buyers were met with comment deletions and account blocks.
-
-This experience highlighted a critical gap in the market: the lack of a dedicated platform for online shoppers to share
-their experiences with social media vendors.
-Traditional social media platforms weren't designed to host and disseminate such reviews effectively.
-
+This experience highlighted a critical gap in the market: the lack of a dedicated platform for online shoppers to share their experiences with social media vendors. Traditional social media platforms weren't designed to host and disseminate such reviews effectively.
 
 ## The Solution: Venhoot
-
 
 This realization led to the conception of Venhoot –
 > an online platform where customers can rate and review businesses that operate through social media.
 
 Venhoot aims to introduce transparency and accountability to the rapidly growing world of social commerce.
 
-
-Venhoot's had two primary goals:
+Venhoot's has two primary goals:
 1. To empower online shoppers with the information they need to make informed decisions.
 2. To encourage vendors to maintain high standards of service through public accountability.
 
 ## The Development Journey
 
-
-
 ### Technical Foundations
 
-The journey from idea to MVP began with setting up the project's foundation.
-I chose Laravel as the backend framework for its robustness and extensive ecosystem.
-The initial commit, made on April 4, 2023, marked the beginning of this exciting journey:
+The journey from idea to MVP began with setting up the project's foundation. I chose Laravel as the backend framework for its robustness and extensive ecosystem. The initial commit, made on April 4, 2023, marked the beginning of this exciting journey:
 
 ![Laravel init](https://i.imgur.com/Z3MKPxQ.png)
 
 I love and enjoy working with Laravel, and it was a no-brainer when I was making the decision to use it for this project.
 
-To develop an MVP quickly, I decided to use [Boostrap](https://getbootsrap.com) (also my favourite) to setup the interface.
-
+To develop an MVP quickly, I decided to use [Bootstrap](https://getbootstrap.com) (also my favorite) to set up the interface.
 
 In a week, I completed the landing page, created the controllers and routes, a few views, and a basic database structure.
+
+### Current Challenges
+
+As I continue to develop Venhoot, I'm facing several significant challenges:
+
+1. Data Collection: Unlike Trustpilot, which focuses on websites, Venhoot needs to gather and verify information about businesses that primarily operate on social media platforms. This presents unique challenges in terms of data accuracy and completeness.
+
+2. User Verification: Ensuring that reviews come from genuine customers is crucial for maintaining the integrity of the platform. Developing a robust verification system for social media-based transactions is more complex than for traditional e-commerce.
+
+3. Platform Scalability: As the number of social media platforms and online vendors grows, ensuring that Venhoot can accommodate this diversity without becoming overly complex is a significant challenge.
+
+4. User Adoption: Encouraging users to leave reviews on a new platform when they're accustomed to using social media for their entire shopping experience requires careful consideration of user experience and incentives.
+
+5. Legal and Ethical Considerations: Navigating the legal landscape of hosting user-generated content, especially reviews that could impact businesses, requires careful consideration and possibly legal counsel.
+
+### Planned Solutions
+
+To address these challenges, I'm exploring several strategies:
+
+1. API Integration: Where possible, I plan to integrate with social media APIs to gather publicly available business information, reducing the reliance on manual data entry.
+
+2. User Authentication: Implementing a system where users can verify their purchases through order screenshots or other proof, while maintaining user privacy.
+
+3. Modular Architecture: Designing the platform with a modular architecture that can easily accommodate new social media platforms or shopping paradigms as they emerge.
+
+4. Intuitive UX Design: Focusing on creating an intuitive, user-friendly interface that makes leaving reviews as simple and rewarding as possible.
+
+5. Community Guidelines: Developing clear, fair community guidelines and review policies, possibly in consultation with legal experts, to ensure the platform operates ethically and legally.
+
+## Looking Ahead
+
+As Venhoot progresses from concept to MVP, I'm excited about its potential to bring much-needed transparency to social media commerce. Future plans include:
+
+- Refining the review submission and verification process
+- Developing a robust search and filter system to help users find relevant reviews quickly
+- Implementing a business response feature, allowing vendors to engage with reviews constructively
+- Exploring partnerships with social media platforms to enhance the integration of Venhoot's services
+
+## Monetization Strategy
+
+While the primary goal is to solve a real problem for online shoppers, I'm also considering sustainable monetization strategies:
+
+1. Premium Business Profiles: Offering enhanced features for businesses, such as detailed analytics and promotional opportunities.
+
+2. Verified Review Program: A paid service for businesses to request verified reviews from confirmed customers.
+
+3. Sponsored Placements: Allowing businesses to boost their visibility on the platform in clearly marked sponsored sections.
+
+## Conclusion
+
+Building Venhoot from an idea to an MVP has been a challenging yet rewarding journey. It's taught me valuable lessons about product development, user experience design, and the complexities of the social commerce ecosystem. As I move forward, I'm committed to tackling the unique challenges of building a review platform for social media commerce.
+
+The road ahead is long and filled with obstacles, but with each line of code and each problem solved, we're one step closer to realizing the vision of a trustworthy, user-centric platform for social commerce reviews. Venhoot has the potential to significantly improve the online shopping experience for countless users, and I'm excited to continue this journey of growth and innovation.
+
+
 
 
