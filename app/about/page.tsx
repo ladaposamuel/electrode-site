@@ -105,7 +105,9 @@ export default function AboutPage() {
       </p>
 
       <section className="mt-10">
-        <p className="m-1">Since you got here :), here's one of my favourite playlists:</p>
+        <p className="m-1">
+          Since you got here :), here's one of my favourite playlists:
+        </p>
         <iframe
           style={{ borderRadius: "12px" }}
           src="https://open.spotify.com/embed/playlist/60zXXNjqoiJsYpgk9VquzE?utm_source=generator"
