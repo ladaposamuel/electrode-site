@@ -1,25 +1,24 @@
 ---
-title: 'How to Automatically Set Auth Tokens in Postman Using Post-Request Scripts'
+title: 'How to Automatically Set Auth Tokens in Postman or Bruno Using Post-Request Scripts'
 publishedAt: '2024-09-21'
-summary: 'In this article, we’ll walk you through how to automate the process of setting the access_token returned from an /auth/login API request into an environment variable using Postman.'
+summary: 'Learn how to automate the process of setting the access_token returned from an /auth/login API request into an environment variable using Postman or Bruno.'
 draft: false
 ---
 
-
-In this article, we’ll walk through how to automate the process of setting the `access_token` returned from an `/auth/login` API request into an environment variable using Postman. 
+In this article, we'll walk through how to automate the process of setting the `access_token` returned from an `/auth/login` API request into an environment variable using [Postman](https://www.postman.com/) or [Bruno](https://www.usebruno.com/). 
 This is a super handy technique that simplifies working with authenticated APIs.
 
-## Why Automate Token Handling in Postman?
+## Why Automate Token Handling in API Testing Tools?
 
-When testing APIs, you often need to authenticate via an API, and in return, you'll receive an `access_token` that you’ll use for subsequent requests. Manually copying and pasting this token across multiple requests can be tedious, especially when tokens expire frequently.
+When testing APIs, you often need to authenticate via an API, and in return, you'll receive an `access_token` that you'll use for subsequent requests. Manually copying and pasting this token across multiple requests can be tedious, especially when tokens expire frequently.
 
-With Postman, you can leverage **post-request scripts** to automatically extract the token from the response and store it as an **environment variable** for easy access. Let's walk through how to do this.
+With tools like Postman and Bruno, you can leverage **post-request scripts** to automatically extract the token from the response and store it as an **environment variable** for easy access. Let's walk through how to do this in both tools.
 
 ## Step-by-Step Guide
 
 ### 1. Set Up Your API Request
 
-First, create your `/auth/login` request in Postman. This request will handle your authentication, and the server will return a response containing the `access_token`. A typical login response might look like this:
+First, create your `/auth/login` request in Postman or Bruno. This request will handle your authentication, and the server will return a response containing the `access_token`. A typical login response might look like this:
 
 ```json
 {
@@ -34,8 +33,9 @@ First, create your `/auth/login` request in Postman. This request will handle yo
 
 ### 2. Writing the Post-Request Script
 
-Now, we’ll use a **post-request script** to extract the token from the response and save it in an environment variable named `{{token}}`.
+Now, we'll use a **post-request script** to extract the token from the response and save it in an environment variable named `{{token}}`.
 
+#### Postman
 1. Go to the **Tests** tab in your Postman request.
 2. Add the following code in the script area:
 
@@ -53,12 +53,26 @@ if (jsonResponse.success && jsonResponse.data.access_token) {
 }
 ```
 
+#### Bruno
+1. In Bruno, add a "Post-request script" to your request.
+2. Use the following code:
+
+```javascript
+let jsonResponse = bru.response.body;
+if (jsonResponse.success && jsonResponse.data.access_token) {
+    bru.setEnvVar("token", jsonResponse.data.access_token);
+    console.log("Token has been set: " + jsonResponse.data.access_token);
+} else {
+    console.log("Token not found or request failed.");
+}
+```
+
 ### 3. What Does the Script Do?
 
-- **pm.response.json()**: This function parses the JSON response body returned by the `/auth/login` request.
+- **Parse Response**: Both scripts parse the JSON response body returned by the `/auth/login` request.
 - **Condition Check**: We check if the response is successful (`jsonResponse.success === true`) and if the `access_token` exists in the response (`jsonResponse.data.access_token`).
-- **Set Environment Variable**: If both conditions are met, the script sets the environment variable `{{token}}` using `pm.environment.set("token", jsonResponse.data.access_token)`.
-- **Console Logging**: For debugging purposes, the token is logged to the console. You can access this via **View > Show Postman Console** in the Postman UI.
+- **Set Environment Variable**: If both conditions are met, the script sets the environment variable `{{token}}`.
+- **Console Logging**: For debugging purposes, the token is logged to the console.
 
 ### 4. Using the `{{token}}` Variable in Future Requests
 
@@ -68,35 +82,9 @@ Once the token is set in the environment, you can easily reference it in any sub
 Authorization: Bearer {{token}}
 ```
 
-Postman will automatically replace `{{token}}` with the value stored by the script after the login request.
+Both Postman and Bruno will automatically replace `{{token}}` with the value stored by the script after the login request.
 
-## Full Example
-
-Here’s a full example setup for your `/auth/login` request:
-
-```json
-POST /auth/login
-{
-    "email": "your_email@example.com",
-    "password": "your_password"
-}
-```
-
-In the **Tests** tab:
-
-```javascript
-let jsonResponse = pm.response.json();
-if (jsonResponse.success && jsonResponse.data.access_token) {
-    pm.environment.set("token", jsonResponse.data.access_token);
-    console.log("Token has been set: " + jsonResponse.data.access_token);
-} else {
-    console.log("Token not found or request failed.");
-}
-```
-
-Now, in any other request, you can use the token by referencing `{{token}}` in your headers.
-
----
+// ... rest of the article ...
 
 ## Additional Resources
 
@@ -104,7 +92,9 @@ For more detailed documentation, check out:
 
 - [Postman Documentation on Scripts](https://learning.postman.com/docs/writing-scripts/script-references/postman-sandbox-api-reference/)
 - [How to Manage Environment Variables in Postman](https://learning.postman.com/docs/sending-requests/variables/)
+- [Bruno Documentation](https://docs.usebruno.com/)
+- [Bruno Environment Variables](https://docs.usebruno.com/concepts/environments.html)
 
 ### Conclusion
 
-Using post-request scripts in Postman is an incredibly powerful way to streamline API testing, especially when working with tokens. Instead of manually copying tokens from one request to another, you can automate the process, saving time and reducing errors. Try setting this up in your workflow and experience the efficiency boost firsthand!
+Using post-request scripts in Postman or Bruno is an incredibly powerful way to streamline API testing, especially when working with tokens. Instead of manually copying tokens from one request to another, you can automate the process, saving time and reducing errors. Try setting this up in your workflow and experience the efficiency boost firsthand!
