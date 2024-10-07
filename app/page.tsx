@@ -44,7 +44,7 @@ export default async function HomePage() {
               href="https://wakatime.com/@electrode"
               className="flex items-center gap-2"
             >
-              {"👨🏾‍💻 Total time coded:"}
+              👨🏾‍💻 Tracked:
               <Image
                 alt={"wakatime stats"}
                 src={
@@ -54,6 +54,7 @@ export default async function HomePage() {
                 height={20}
                 priority
               />
+              of Coding.
             </a>
 
             <Link href="/blog" className="flex items-center">
@@ -70,10 +71,10 @@ export default async function HomePage() {
                 to review and share their experiences with online business.
               </span>
             </Link>
-            {/* <Link href="/blog" className="flex items-center">
-            {"🏢 "}
-            {` owns Electrode Dev Ltd (CAC number: 7178628)`}
-          </Link> */}
+            <Link href="/blog" className="flex items-center">
+              {"🏢 "}
+              {` Electrode Dev Ltd (CAC number: 7178628)`}
+            </Link>
           </div>
         </div>
         <p className="my-5 max-w-[600px] text-neutral-800 dark:text-neutral-200">
