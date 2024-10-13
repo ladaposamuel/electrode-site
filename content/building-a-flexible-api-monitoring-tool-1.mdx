@@ -1,0 +1,150 @@
+---
+title: 'Building a Flexible API Monitoring Package with TypeScript'
+publishedAt: '2024-10-13'
+summary: 'Learn how to create a versatile API monitoring package using TypeScript that works with Express, Nest.js, and vanilla Node.js applications.'
+draft: false
+---
+
+# Building a Flexible API Monitoring Package with TypeScript
+
+In today's API-driven world, monitoring the performance, usage, and health of your APIs is crucial. Whether you're running a small startup or managing enterprise-level systems, having insight into your API's behavior can make the difference between a smooth operation and a critical failure.
+
+In this series, we'll walk through the process of building a flexible, TypeScript-based API monitoring package that can be easily integrated with Express, Nest.js, or vanilla Node.js applications. By the end of this series, you'll have a powerful tool to track API usage, monitor performance, and gain valuable insights into your application's behavior.
+
+## Series Overview
+
+1. Introduction and Project Setup (this article)
+2. Core Monitoring Functionality
+3. Framework Adapters: Express, Nest.js, and Node.js
+4. Storage Providers: In-Memory and MSSQL
+5. Dashboard Service for Data Aggregation
+6. Advanced Features: Latency Tracking and Error Monitoring
+
+## Getting Started
+
+Let's begin by setting up our project structure and configuring our development environment.
+
+### Project Structure
+
+First, let's create our project directory structure. Open your terminal and run the following commands:
+
+```bash
+mkdir api-monitor
+cd api-monitor
+
+# Create the main directory structure
+mkdir -p src/{core/{interfaces},adapters,storage/{interfaces},utils,dashboard}
+mkdir -p test/{unit,integration}
+mkdir -p examples/{express-example,nest-example,node-example}
+
+# Create main source files
+touch src/index.ts
+touch src/core/{monitor.ts,logger.ts}
+touch src/core/interfaces/{config.interface.ts,logger.interface.ts}
+touch src/adapters/{express-adapter.ts,nest-adapter.ts,node-adapter.ts}
+touch src/storage/{in-memory-provider.ts,mssql-provider.ts}
+touch src/storage/interfaces/storage-provider.interface.ts
+touch src/utils/{error-handler.ts,request-parser.ts}
+touch src/dashboard/{dashboard-service.ts,dashboard-data.interface.ts}
+
+# Create config and documentation files
+touch tsconfig.json package.json README.md LICENSE
+```
+
+This structure provides a solid foundation for our API monitoring package, with separate directories for core functionality, framework adapters, storage providers, utilities, and dashboard services.
+
+### Configuration Files
+
+Now, let's set up our `tsconfig.json` and `package.json` files.
+
+#### tsconfig.json
+
+Create a `tsconfig.json` file in the root of your project with the following content:
+
+```json
+{
+  "compilerOptions": {
+    "target": "es2018",
+    "module": "commonjs",
+    "lib": ["es2018", "esnext.asynciterable"],
+    "declaration": true,
+    "outDir": "./dist",
+    "rootDir": "./src",
+    "strict": true,
+    "esModuleInterop": true,
+    "resolveJsonModule": true,
+    "moduleResolution": "node",
+    "sourceMap": true,
+    "experimentalDecorators": true,
+    "emitDecoratorMetadata": true
+  },
+  "include": ["src/**/*"],
+  "exclude": ["node_modules", "**/*.spec.ts"]
+}
+```
+
+This configuration sets up TypeScript compilation for our project, targeting ES2018 and using CommonJS modules.
+
+#### package.json
+
+Next, let's set up our `package.json`:
+
+```json
+{
+  "name": "api-monitor",
+  "version": "0.1.0",
+  "description": "A flexible API monitoring package for Node.js applications",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "scripts": {
+    "build": "tsc",
+    "test": "jest",
+    "lint": "eslint . --ext .ts",
+    "prepublishOnly": "npm run build"
+  },
+  "keywords": ["api", "monitor", "typescript", "nodejs"],
+  "author": "Your Name",
+  "license": "MIT",
+  "devDependencies": {
+    "@types/node": "^14.14.31",
+    "@typescript-eslint/eslint-plugin": "^4.15.2",
+    "@typescript-eslint/parser": "^4.15.2",
+    "eslint": "^7.20.0",
+    "jest": "^26.6.3",
+    "ts-jest": "^26.5.2",
+    "typescript": "^4.2.2"
+  },
+  "peerDependencies": {
+    "express": "^4.17.1",
+    "@nestjs/common": "^7.6.13",
+    "@nestjs/core": "^7.6.13"
+  },
+  "peerDependenciesMeta": {
+    "express": {
+      "optional": true
+    },
+    "@nestjs/common": {
+      "optional": true
+    },
+    "@nestjs/core": {
+      "optional": true
+    }
+  }
+}
+```
+
+This `package.json` sets up our project with basic metadata, scripts for building and testing, and necessary dependencies.
+
+### Installing Dependencies
+
+With our `package.json` in place, let's install the dependencies:
+
+```bash
+npm install
+```
+
+## Next Steps
+
+With our project structure set up and dependencies installed, we're ready to start building our API monitoring package. In the next article, we'll dive into implementing the core monitoring functionality, including request interception and data collection.
+
+Stay tuned for Part 2 of our series, where we'll explore how to create the central `Monitor` class that will form the backbone of our API monitoring system.

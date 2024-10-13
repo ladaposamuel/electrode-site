@@ -44,7 +44,7 @@ export default async function HomePage() {
               href="https://wakatime.com/@electrode"
               className="flex items-center gap-2"
             >
-              👨🏾‍💻 Tracked:
+              {"👨🏾‍💻 Tracked: "}
               <Image
                 alt={"wakatime stats"}
                 src={
@@ -54,23 +54,21 @@ export default async function HomePage() {
                 height={20}
                 priority
               />
-              of Coding.
+              {" of Coding."}
             </a>
 
             <Link href="/blog" className="flex items-center">
               {"👀 Blog views:"} {views}
             </Link>
 
-            <Link
-              href="https://venhoot.com"
-              className="venhoot-text flex items-center"
-            >
-              <span>
+              <span className="flex items-center gap-2">
                 {"👷🏾 "} Currently building{" "}
-                <span className="underline">Venhoot</span>, a platform for users
-                to review and share their experiences with online business.
+                <Link  href="https://venhoot.com">
+                <span className="underline">Venhoot</span></Link> and{" "}
+                <Link  href="https://github.com/ladaposamuel/mangologs">
+                <span className="underline">MangoLogs</span></Link>
               </span>
-            </Link>
+            
             <Link href="/blog" className="flex items-center">
               {"🏢 "}
               {` Electrode Dev Ltd (CAC number: 7178628)`}

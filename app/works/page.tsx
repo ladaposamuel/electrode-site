@@ -6,7 +6,19 @@ export default function Works() {
     {
       name: "Venhoot",
       description: "Online review and rating system for Instagram businesses",
-      href: "/venhoot",
+      href: "https://venhoot.com",
+    },
+    {
+      name: "Mangomoney App (iOS & Android)",
+      description:
+        "A mobile application that allows users to schedule money transfers and bills payments. (Not Live yet)",
+      href: "https://mangomoney.app",
+    },
+    {
+      name: "MangoLogs",
+      description:
+        "An open source logging library for NodeJs that allows you to log requests to a server to memory or a database.",
+      href: "https://github.com/ladaposamuel/mangologs",
     },
   ];
 
