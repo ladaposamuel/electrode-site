@@ -31,7 +31,7 @@ export default async function HomePage() {
         <div className="flex items-start md:items-center my-8 flex-col md:flex-row">
           <Image
             alt={name}
-            className="rounded-full grayscale"
+            className="rounded-md grayscale"
             src={avatar}
             placeholder="blur"
             width={120}
@@ -44,7 +44,7 @@ export default async function HomePage() {
               href="https://wakatime.com/@electrode"
               className="flex items-center gap-2"
             >
-              {"👨🏾‍💻 Tracked: "}
+              {"👨🏾‍💻 Tracked Coding time: "}
               <Image
                 alt={"wakatime stats"}
                 src={
@@ -54,22 +54,22 @@ export default async function HomePage() {
                 height={20}
                 priority
               />
-              {" of Coding."}
             </a>
 
             <Link href="/blog" className="flex items-center">
               {"👀 Blog views:"} {views}
             </Link>
 
-              <span className="flex items-center gap-2">
+            <Link
+              href="/works"
+              className="venhoot-text flex items-center"
+            >
+              <span>
                 {"👷🏾 "} Currently building{" "}
-                <Link  href="https://venhoot.com">
-                <span className="underline">Venhoot</span></Link> and{" "}
-                <Link  href="https://github.com/ladaposamuel/mangologs">
-                <span className="underline">MangoLogs</span></Link>
+                <span className="underline">Venhoot</span> &  <span className="underline">MangoLogs</span> 
               </span>
-            
-            <Link href="/blog" className="flex items-center">
+            </Link>
+            <Link href="/works" className="flex items-center">
               {"🏢 "}
               {` Electrode Dev Ltd (CAC number: 7178628)`}
             </Link>
