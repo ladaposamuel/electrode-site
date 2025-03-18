@@ -1,16 +1,19 @@
 import Link from "next/link";
 import Image from "next/image";
 import { getBlogViews, getTweetCount, getStarCount } from "lib/metrics";
-import { ArrowIcon, ViewsIcon } from "app/components/icons";
+import { ArrowIcon } from "app/components/icons";
 import { name, about, bio, avatar } from "lib/info";
 import { getResumeLink } from "utils";
 import { HomepageButton } from "app/components/homepage-button/homepage-button";
 import { allBlogs } from "contentlayer/generated";
+import { StatCard } from "./components/stat-card";
+import { BlogPreview } from "./components/blog-preview";
+import { ContentPreview } from "./components/content-preview";
+import { OpenToWork } from "./components/open-to-work";
+import { readingData } from "../data/reading";
 
 export const revalidate = 60;
 export const dynamic = "force-dynamic";
-
-const blogPostLimit = 3;
 
 export default async function HomePage() {
   let views;
@@ -21,105 +24,127 @@ export default async function HomePage() {
     console.error(error);
   }
 
+  const recentPosts = allBlogs
+    .filter((post) => !post.draft)
+    .sort(
+      (a, b) =>
+        new Date(b.publishedAt).getTime() - new Date(a.publishedAt).getTime()
+    )
+    .slice(0, 3);
+
   return (
-    <>
-      <section>
-        <h1 className="font-bold text-3xl font-serif">{name}</h1>
-        <p className="my-5 max-w-[460px] text-neutral-800 dark:text-neutral-200">
-          {about()}
-        </p>
-        <div className="flex items-start md:items-center my-8 flex-col md:flex-row">
+    <div className="space-y-8">
+      <section className="space-y-4">
+        <div className="flex items-center justify-between">
+          <div>
+            <h1 className="text-2xl font-bold tracking-tighter">
+              hey, I'm samuel 👋
+            </h1>
+            <p className="text-sm text-neutral-600 dark:text-neutral-400">
+              fullstack developer, open source contributor, writer
+            </p>
+          </div>
+          {/* Temporarily commented out
           <Image
             alt={name}
-            className="rounded-md grayscale"
+            className="rounded-full grayscale hover:grayscale-0 transition-all"
             src={avatar}
             placeholder="blur"
-            width={120}
+            width={100}
+            height={100}
             priority
           />
-          <div className="mt-8 md:mt-0 ml-0 md:ml-6 space-y-1 text-neutral-500 dark:text-neutral-400">
-            <a
-              rel="noopener noreferrer"
-              target="_blank"
-              href="https://wakatime.com/@electrode"
-              className="flex items-center gap-2"
-            >
-              {"👨🏾‍💻 Tracked Coding time: "}
-              <Image
-                alt={"wakatime stats"}
-                src={
-                  "https://wakatime.com/badge/user/c81ce760-211d-45d2-8bcd-856d260c5c8c.svg"
-                }
-                width={200}
-                height={20}
-                priority
-              />
-            </a>
-
-            <Link href="/blog" className="flex items-center">
-              <span>👀 Blog views: {views?.toLocaleString() ?? "0"}</span>
-            </Link>
-
-            <Link href="/works" className="venhoot-text flex items-center">
-              <span>
-                {"👷🏾 "} Currently building{" "}
-                <span className="underline">Venhoot</span> &{" "}
-                <span className="underline">MangoLogs</span>
-              </span>
-            </Link>
-            <Link href="/works" className="flex items-center">
-              {"🏢 "}
-              {` Electrode Dev Ltd (CAC number: 7178628)`}
-            </Link>
-          </div>
+          */}
         </div>
-        <p className="my-5 max-w-[600px] text-neutral-800 dark:text-neutral-200">
-          {bio()}
-        </p>
-        <ul className="flex flex-col md:flex-row mt-8 space-x-0 md:space-x-4 space-y-2 md:space-y-0 font-sm text-neutral-500 dark:text-neutral-400">
-          <li>
-            <HomepageButton href={getResumeLink()}>
-              <ArrowIcon />
-              <p className="text-sm">Check my Resume</p>
-            </HomepageButton>
-          </li>
-          <li>
-            <HomepageButton href="https://github.com/ladaposamuel">
-              <ArrowIcon />
-              <p className="text-sm">Visit my Github Profile</p>
-            </HomepageButton>
-          </li>
-          <li>
-            <HomepageButton href="https://www.linkedin.com/in/ladapo-samuel/">
-              <ArrowIcon />
-              <p className="text-sm">Visit my Linkedin Profile</p>
-            </HomepageButton>
-          </li>
-        </ul>
+        <p className="text-neutral-800 dark:text-neutral-200">{about()}</p>
       </section>
 
-      <section className="mt-10">
-        <h3 className="font-bold text-2 font-serif mb-5">Recent Blog Posts</h3>
-        {allBlogs
-          .filter((post) => !post.draft)
-          .sort(
-            (a, b) =>
-              new Date(b.publishedAt).getTime() -
-              new Date(a.publishedAt).getTime()
-          ) // Step 2
-          .slice(0, 3)
-          .map((post) => (
-            <Link
-              key={post.slug}
-              className="flex flex-col space-y-1 mb-4"
-              href={`/blog/${post.slug}`}
-            >
-              <div className="w-full flex flex-col">
-                <p> ⥅ {post.title}</p>
-              </div>
-            </Link>
-          ))}
+      <section className="space-y-4">
+        <div className="grid gap-3 grid-cols-1 sm:grid-cols-2 lg:grid-cols-4">
+          <div className="lg:col-span-2">
+            <StatCard
+              icon="👨🏾‍💻"
+              label="Coding Stats"
+              value={
+                <div className="flex items-center justify-center w-full">
+                  <Image
+                    alt="wakatime stats"
+                    src="https://wakatime.com/badge/user/c81ce760-211d-45d2-8bcd-856d260c5c8c.svg"
+                    width={180}
+                    height={28}
+                    priority
+                    className="scale-110"
+                  />
+                </div>
+              }
+              href="https://wakatime.com/@electrode"
+            />
+          </div>
+          <StatCard
+            icon="👀"
+            label="Blog Views"
+            value={views?.toLocaleString() ?? "0"}
+            href="/blog"
+          />
+          <StatCard
+            icon="🏗️"
+            label="Active Projects"
+            value="Venhoot & MangoLogs"
+            href="/works"
+          />
+        </div>
       </section>
-    </>
+
+      <div className="grid gap-6 grid-cols-1 sm:grid-cols-2">
+        <ContentPreview
+          title="currently reading"
+          items={readingData.reading}
+          viewAllLink="/reading"
+        />
+        <ContentPreview
+          title="currently watching"
+          items={readingData.watching}
+          viewAllLink="/reading"
+        />
+      </div>
+
+      <OpenToWork />
+
+      <section className="space-y-4">
+        <div className="flex items-center justify-between">
+          <h2 className="text-sm font-medium text-neutral-600 dark:text-neutral-400">
+            recent posts
+          </h2>
+          <Link
+            href="/blog"
+            className="text-sm text-neutral-600 dark:text-neutral-400 hover:text-neutral-900 dark:hover:text-neutral-100"
+          >
+            view all →
+          </Link>
+        </div>
+        <div className="grid gap-4 grid-cols-1">
+          {recentPosts.map((post) => (
+            <BlogPreview key={post.slug} post={post} />
+          ))}
+        </div>
+      </section>
+
+      <section>
+        <div className="flex flex-wrap gap-2">
+          <HomepageButton href={getResumeLink()}>
+            <ArrowIcon />
+            <p className="text-sm">resume</p>
+          </HomepageButton>
+          <HomepageButton href="https://github.com/ladaposamuel">
+            <ArrowIcon />
+            <p className="text-sm">github</p>
+          </HomepageButton>
+          <HomepageButton href="https://www.linkedin.com/in/ladapo-samuel/">
+            <ArrowIcon />
+            <p className="text-sm">linkedin</p>
+          </HomepageButton>
+        </div>
+      </section>
+    </div>
   );
 }

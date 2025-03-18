@@ -21,6 +21,7 @@ interface ExternalPost {
 
 interface InternalPost extends Blog {
   isExternal: false;
+  tags?: string;
 }
 
 type Post = InternalPost | ExternalPost;
@@ -110,7 +111,9 @@ export default async function BlogPage({
   const allTags = Array.from(
     new Set(
       allPosts
-        .filter((post): post is InternalPost => !post.isExternal && post.tags !== undefined)
+        .filter((post): post is InternalPost & { tags: string } =>
+          !post.isExternal && post.tags !== undefined
+        )
         .flatMap((post) => post.tags.split(",").map((t) => t.trim()))
     )
   ).sort();
