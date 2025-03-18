@@ -47,14 +47,14 @@ export const getViewsCount = cache(async () => {
     try {
       const querySnapshot = await getDocs(collection(db, 'views'));
       const views = querySnapshot.docs.map((doc) => {
-        const data = doc.data();
+        const data = doc.data() as { count: number; timestamp: any; slug: string };
         // Convert the Firestore Timestamp to a simple value
         return { ...data, timestamp: data.timestamp.toMillis() };
       });
       return views;
     } catch (error) {
-      console.error('Error fetching blog views count:', error);
-      throw error;
+      console.error('Error fetching views count:', error);
+      return [];
     }
 });
 
@@ -89,4 +89,3 @@ export const getStarCount = cache(async () => {
 
   return req.data.stargazers_count;
 });
-

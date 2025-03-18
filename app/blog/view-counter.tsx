@@ -4,33 +4,27 @@ import { useEffect } from 'react';
 import { increment } from 'app/actions';
 
 export default function ViewCounter({
-  post,
+  slug,
   allViews,
   trackView,
-  showTime = '',
 }: {
-  post: any;
-  allViews: any;
+  slug: string;
+  allViews: { slug: string; count?: number }[];
   trackView?: boolean;
-  showTime?: string;
 }) {
-  const { slug, structuredData } = post;
-  const { headline } = structuredData;
-
   const viewsForSlug = allViews.find((view) => view.slug === slug);
   const count = viewsForSlug?.count || 0;
   const verb = count === 1 ? 'view' : 'views';
 
-
   useEffect(() => {
     if (trackView) {
-      increment(headline, slug);
+      increment(slug, slug);
     }
-  }, [trackView, headline, slug]);
+  }, [trackView, slug]);
 
   return (
-    <p className="font-mono text-sm text-neutral-500 tracking-tighter">
-      {`${count.toLocaleString()} ${verb}`} {showTime ? `| ${showTime}` : ''}
+    <p className="text-sm text-neutral-600 dark:text-neutral-400">
+      {`${count.toLocaleString()} ${verb}`}
     </p>
   );
 }

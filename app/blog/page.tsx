@@ -74,8 +74,12 @@ const formatDate = (date: string | Date): string => {
   }
 };
 
-export default async function BlogPage() {
-  const allViews = await getViewsCount();
+export default async function BlogPage({
+  searchParams,
+}: {
+  searchParams: { tag?: string };
+}) {
+  const allViews: { slug: string; count: number }[] = await getViewsCount();
   type Post = (Blog & { isExternal: false }) | ExternalPost;
 
   const allPosts: Post[] = [
@@ -93,71 +97,141 @@ export default async function BlogPage() {
     ),
   ];
 
+  // Filter posts by tag if provided
+  const filteredPosts = searchParams.tag
+    ? allPosts.filter(
+        (post) =>
+          !post.isExternal &&
+          post.tags?.split(",").map((t) => t.trim()).includes(searchParams.tag || "")
+      )
+    : allPosts;
+
+  // Get unique tags from all posts
+  const allTags = Array.from(
+    new Set(
+      allPosts
+        .filter((post): post is InternalPost => !post.isExternal && post.tags !== undefined)
+        .flatMap((post) => post.tags.split(",").map((t) => t.trim()))
+    )
+  ).sort();
+
   // Group posts by year
-  const postsByYear = allPosts
+  const postsByYear = filteredPosts
     .filter((post) => !("draft" in post && post.draft))
     .sort(
       (a, b) =>
         new Date(b.publishedAt).getTime() - new Date(a.publishedAt).getTime()
     )
-    .reduce((acc, post) => {
+    .reduce((acc: { [key: string]: Post[] }, post) => {
       const year = new Date(post.publishedAt).getFullYear();
-      if (!acc[year]) {
-        acc[year] = [];
-      }
+      acc[year] = acc[year] || [];
       acc[year].push(post);
       return acc;
-    }, {} as Record<number, typeof allPosts>);
-
-  const sortedYears = Object.keys(postsByYear).sort(
-    (a, b) => Number(b) - Number(a)
-  );
+    }, {});
 
   return (
     <section>
-      <h1 className="font-bold text-3xl font-serif mb-5">Blog</h1>
-      {sortedYears.map((year) => (
-        <div key={year} className="mb-8">
-          <h2 className="text-2xl font-bold mb-4">{year}</h2>
-          {postsByYear[Number(year)].map((post) =>
-            post.isExternal ? (
-              <a
-                key={post.url}
-                href={post.url}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="flex flex-col space-y-1 mb-4 group"
-              >
-                <div className="w-full flex flex-col">
-                  <div className="flex items-center">
-                    <p>⥱ {post.title}</p>
-                    <ExternalLink className="w-4 h-4 ml-1 inline-block text-gray-500" />
+      <h1 className="font-bold text-2xl mb-8 tracking-tighter">read my blog</h1>
+
+      {/* Tags filter */}
+      <div className="mb-8 flex flex-wrap gap-2">
+        <Link
+          href="/blog"
+          className={`text-sm px-3 py-1 rounded-full ${
+            !searchParams.tag
+              ? "bg-neutral-100 text-neutral-900"
+              : "bg-neutral-200 text-neutral-600 hover:bg-neutral-300"
+          }`}
+        >
+          All
+        </Link>
+        {allTags.map((tag) => (
+          <Link
+            key={tag}
+            href={`/blog?tag=${tag}`}
+            className={`text-sm px-3 py-1 rounded-full ${
+              searchParams.tag === tag
+                ? "bg-neutral-100 text-neutral-900"
+                : "bg-neutral-200 text-neutral-600 hover:bg-neutral-300"
+            }`}
+          >
+            {tag}
+          </Link>
+        ))}
+      </div>
+
+      {Object.entries(postsByYear)
+        .sort(([a], [b]) => Number(b) - Number(a))
+        .map(([year, posts]) => (
+          <div key={year}>
+            <h2 className="text-xl font-bold mb-4">{year}</h2>
+            <div className="grid gap-8 mx-auto">
+              {posts.map((post) => {
+                const views = !post.isExternal && allViews.find(
+                  (view) => view.slug === post.slug.replace("/blog", "")
+                );
+
+                return (
+                  <div
+                    key={post.isExternal ? post.url : post.slug}
+                    className="flex flex-col space-y-1"
+                  >
+                    <div className="w-full flex flex-col">
+                      {post.isExternal ? (
+                        <a
+                          href={post.url}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="text-neutral-900 dark:text-neutral-100 tracking-tight flex items-center hover:text-neutral-600 dark:hover:text-neutral-400"
+                        >
+                          {post.title}
+                          <ExternalLink className="ml-1 inline-block h-4 w-4" />
+                        </a>
+                      ) : (
+                        <Link
+                          href={post.slug}
+                          className="text-neutral-900 dark:text-neutral-100 tracking-tight hover:text-neutral-600 dark:hover:text-neutral-400"
+                        >
+                          {post.title}
+                        </Link>
+                      )}
+                    </div>
+                    <div className="flex gap-3">
+                      <span className="text-sm text-neutral-600 dark:text-neutral-400">
+                        {formatDate(post.publishedAt)}
+                      </span>
+                      {!post.isExternal && views && (
+                        <ViewCounter
+                          allViews={allViews}
+                          slug={post.slug.replace("/blog", "")}
+                          trackView={false}
+                        />
+                      )}
+                      {post.isExternal && (
+                        <span className="text-sm text-neutral-600 dark:text-neutral-400">
+                          {post.source}
+                        </span>
+                      )}
+                    </div>
+                    {!post.isExternal && post.tags && (
+                      <div className="flex gap-2 flex-wrap">
+                        {post.tags.split(",").map((tag) => (
+                          <Link
+                            key={tag.trim()}
+                            href={`/blog?tag=${tag.trim()}`}
+                            className="text-xs px-2 py-1 rounded-full bg-neutral-200 text-neutral-600 hover:bg-neutral-300"
+                          >
+                            {tag.trim()}
+                          </Link>
+                        ))}
+                      </div>
+                    )}
                   </div>
-                  <p className="text-sm text-gray-600">
-                    {formatDate(post.publishedAt)} · {post.source}
-                  </p>
-                </div>
-              </a>
-            ) : (
-              <Link
-                key={post.slug}
-                className="flex flex-col space-y-1 mb-4"
-                href={`/blog/${post.slug}`}
-              >
-                <div className="w-full flex flex-col">
-                  <p>⥱ {post.title}</p>
-                  <ViewCounter
-                    post={post}
-                    allViews={allViews}
-                    trackView={false}
-                    showTime={formatDate(post.publishedAt)}
-                  />
-                </div>
-              </Link>
-            )
-          )}
-        </div>
-      ))}
+                );
+              })}
+            </div>
+          </div>
+        ))}
     </section>
   );
 }

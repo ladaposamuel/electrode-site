@@ -62,7 +62,10 @@ export const Blog = defineDocumentType(() => ({
     },
     draft: {
       type: "boolean",
-      default: false,
+    },
+    tags: {
+      type: "string",
+      required: false,
     },
   },
   computedFields,
