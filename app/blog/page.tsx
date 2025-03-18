@@ -131,16 +131,16 @@ export default async function BlogPage({
 
   return (
     <section>
-      <h1 className="font-bold text-2xl mb-8 tracking-tighter">read my blog</h1>
+      <h1 className="font-bold text-2xl mb-4 tracking-tighter">read my blog</h1>
 
       {/* Tags filter */}
-      <div className="mb-8 flex flex-wrap gap-2">
+      <div className="mb-6 flex flex-wrap gap-1.5">
         <Link
           href="/blog"
-          className={`text-sm px-3 py-1 rounded-full ${
+          className={`text-xs px-3 py-1 rounded-md transition-colors ${
             !searchParams.tag
-              ? "bg-neutral-100 text-neutral-900"
-              : "bg-neutral-200 text-neutral-600 hover:bg-neutral-300"
+              ? "bg-neutral-800 text-white dark:bg-white dark:text-neutral-900"
+              : "bg-neutral-100 text-neutral-600 hover:bg-neutral-200 dark:bg-neutral-800 dark:text-neutral-400 dark:hover:bg-neutral-700"
           }`}
         >
           All
@@ -149,10 +149,10 @@ export default async function BlogPage({
           <Link
             key={tag}
             href={`/blog?tag=${tag}`}
-            className={`text-sm px-3 py-1 rounded-full ${
+            className={`text-xs px-3 py-1 rounded-md transition-colors ${
               searchParams.tag === tag
-                ? "bg-neutral-100 text-neutral-900"
-                : "bg-neutral-200 text-neutral-600 hover:bg-neutral-300"
+                ? "bg-neutral-800 text-white dark:bg-white dark:text-neutral-900"
+                : "bg-neutral-100 text-neutral-600 hover:bg-neutral-200 dark:bg-neutral-800 dark:text-neutral-400 dark:hover:bg-neutral-700"
             }`}
           >
             {tag}
@@ -163,9 +163,9 @@ export default async function BlogPage({
       {Object.entries(postsByYear)
         .sort(([a], [b]) => Number(b) - Number(a))
         .map(([year, posts]) => (
-          <div key={year}>
-            <h2 className="text-xl font-bold mb-4">{year}</h2>
-            <div className="grid gap-8 mx-auto">
+          <div key={year} className="mb-8">
+            <h2 className="text-lg font-bold mb-4 text-neutral-800 dark:text-neutral-200">{year}</h2>
+            <div className="grid gap-4 mx-auto">
               {posts.map((post) => {
                 const views = !post.isExternal && allViews.find(
                   (view) => view.slug === post.slug.replace("/blog", "")
@@ -174,58 +174,70 @@ export default async function BlogPage({
                 return (
                   <div
                     key={post.isExternal ? post.url : post.slug}
-                    className="flex flex-col space-y-1"
+                    className="p-4 rounded-lg bg-white dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-800"
                   >
-                    <div className="w-full flex flex-col">
-                      {post.isExternal ? (
-                        <a
-                          href={post.url}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="text-neutral-900 dark:text-neutral-100 tracking-tight flex items-center hover:text-neutral-600 dark:hover:text-neutral-400"
-                        >
-                          {post.title}
-                          <ExternalLink className="ml-1 inline-block h-4 w-4" />
-                        </a>
-                      ) : (
-                        <Link
-                          href={post.slug}
-                          className="text-neutral-900 dark:text-neutral-100 tracking-tight hover:text-neutral-600 dark:hover:text-neutral-400"
-                        >
-                          {post.title}
-                        </Link>
-                      )}
-                    </div>
-                    <div className="flex gap-3">
-                      <span className="text-sm text-neutral-600 dark:text-neutral-400">
-                        {formatDate(post.publishedAt)}
-                      </span>
-                      {!post.isExternal && views && (
-                        <ViewCounter
-                          allViews={allViews}
-                          slug={post.slug.replace("/blog", "")}
-                          trackView={false}
-                        />
-                      )}
-                      {post.isExternal && (
-                        <span className="text-sm text-neutral-600 dark:text-neutral-400">
-                          {post.source}
-                        </span>
-                      )}
-                    </div>
-                    {!post.isExternal && post.tags && (
-                      <div className="flex gap-2 flex-wrap">
-                        {post.tags.split(",").map((tag) => (
-                          <Link
-                            key={tag.trim()}
-                            href={`/blog?tag=${tag.trim()}`}
-                            className="text-xs px-2 py-1 rounded-full bg-neutral-200 text-neutral-600 hover:bg-neutral-300"
+                    <div className="flex flex-col space-y-2">
+                      <div>
+                        {post.isExternal ? (
+                          <a
+                            href={post.url}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="text-base font-medium text-neutral-900 dark:text-neutral-100 tracking-tight hover:text-neutral-600 dark:hover:text-neutral-400 flex items-center"
                           >
-                            {tag.trim()}
+                            {post.title}
+                            <ExternalLink className="ml-1.5 inline-block h-3.5 w-3.5" />
+                          </a>
+                        ) : (
+                          <Link
+                            href={post.slug}
+                            className="text-base font-medium text-neutral-900 dark:text-neutral-100 tracking-tight hover:text-neutral-600 dark:hover:text-neutral-400"
+                          >
+                            {post.title}
                           </Link>
-                        ))}
+                        )}
                       </div>
-                    )}
+
+                      <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
+                        <span className="text-xs text-neutral-600 dark:text-neutral-400">
+                          {formatDate(post.publishedAt)}
+                        </span>
+                        {!post.isExternal && views && (
+                          <>
+                            <span className="text-neutral-300 dark:text-neutral-600">•</span>
+                            <ViewCounter
+                              allViews={allViews}
+                              slug={post.slug.replace("/blog", "")}
+                              trackView={false}
+                            />
+                          </>
+                        )}
+                        {post.isExternal && (
+                          <>
+                            <span className="text-neutral-300 dark:text-neutral-600">•</span>
+                            <span className="text-xs text-neutral-600 dark:text-neutral-400">
+                              {post.source}
+                            </span>
+                          </>
+                        )}
+                        {!post.isExternal && post.tags && (
+                          <>
+                            <span className="text-neutral-300 dark:text-neutral-600">•</span>
+                            <div className="flex gap-1.5 flex-wrap">
+                              {post.tags.split(",").map((tag) => (
+                                <Link
+                                  key={tag.trim()}
+                                  href={`/blog?tag=${tag.trim()}`}
+                                  className="text-[10px] px-2 py-0.5 rounded-md bg-neutral-100 text-neutral-600 hover:bg-neutral-200 dark:bg-neutral-800 dark:text-neutral-400 dark:hover:bg-neutral-700 transition-colors"
+                                >
+                                  {tag.trim()}
+                                </Link>
+                              ))}
+                            </div>
+                          </>
+                        )}
+                      </div>
+                    </div>
                   </div>
                 );
               })}
