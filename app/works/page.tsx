@@ -1,101 +1,108 @@
+import { WorkCard } from "../components/work-card";
 import Link from "next/link";
 import { getResumeLink } from "utils";
 
 export default function Works() {
+  //   status: "wip" as const,
+  //   status: "completed" as const,
+
   const projects = [
     {
-      name: "Venhoot",
+      title: "Venhoot",
       description: "Online review and rating system for Instagram businesses",
       href: "https://venhoot.com",
+      status: "wip" as const,
+      tags: ["Next.js", "TypeScript", "Tailwind", "Prisma", "PostgreSQL"],
     },
     {
-      name: "Mangomoney App (iOS & Android)",
+      title: "Mangomoney App",
       description:
-        "A mobile application that allows users to schedule money transfers and bills payments. (Not Live yet)",
+        "A mobile application that allows users to schedule money transfers and bills payments.",
       href: "https://mangomoney.app",
+      status: "wip" as const,
+      tags: ["React Native", "Node.js", "MongoDB"],
     },
     {
-      name: "MangoLogs",
+      title: "MangoLogs",
       description:
         "An open source logging library for NodeJs that allows you to log requests to a server to memory or a database.",
       href: "https://github.com/ladaposamuel/mangologs",
+      status: "wip" as const,
+      tags: ["Node.js", "TypeScript", "Open Source"],
     },
   ];
 
   const workExperience = [
     {
-      name: "Audiomack.com",
+      title: "Audiomack",
       position: "Fullstack Software Developer",
       period: "October 2020 - Present",
       href: "https://audiomack.com",
+      status: "active" as const,
+      tags: ["PHP", "Laravel", "Vue.js", "AWS", "Redis"],
     },
     {
-      name: "Abrahams Consulting Limited",
+      title: "Abrahams Consulting Limited",
       position: "Full Stack Developer",
       period: "January 2018 - January 2024",
       href: getResumeLink(),
+      status: "completed" as const,
+      tags: ["PHP", "Laravel", "React", "MySQL"],
     },
     {
-      name: "Jackocoins.com",
+      title: "Jackocoins",
       position: "Full Stack Developer",
       period: "January 2018 - January 2023",
       href: "https://jackocoins.com",
+      status: "completed" as const,
+      tags: ["PHP", "Laravel", "Vue.js", "PostgreSQL"],
     },
     {
-      name: "GigaLayer.com",
+      title: "GigaLayer",
       position: "Full Stack Developer",
       period: "November 2019 - November 2020",
       href: "https://gigalayer.com",
+      status: "completed" as const,
+      tags: ["PHP", "Laravel", "JavaScript", "MySQL"],
     },
   ];
 
   return (
     <section>
-      <h1 className="font-bold text-3xl font-serif mb-5">My Works</h1>
+      <h1 className="font-bold text-2xl mb-6 tracking-tighter">my works</h1>
 
-      <div className="mb-8">
-        <h2 className="text-2xl font-bold mb-4">Projects</h2>
-        {projects.map((project, index) => (
-          <Link
-            key={index}
-            className="flex flex-col space-y-1 mb-4"
-            href={project.href}
-          >
-            <div className="w-full flex flex-col">
-              <p className="font-medium">⥱ {project.name}</p>
-              <p className="text-gray-600">{project.description}</p>
-            </div>
-          </Link>
-        ))}
-        <i className="text-gray-600 text-sm">
-          Working on some other cool secret project I'm going to list soon.
-        </i>
-      </div>
+      <div className="space-y-6">
+        <div>
+          <h2 className="text-sm font-medium text-neutral-600 dark:text-neutral-400 mb-3">
+            Projects
+          </h2>
+          <div className="divide-y divide-neutral-100 dark:divide-neutral-800">
+            {projects.map((project) => (
+              <WorkCard key={project.title} {...project} />
+            ))}
+          </div>
+        </div>
 
-      <div className="mb-8">
-        <h2 className="text-2xl font-bold mb-4">Work Experience</h2>
-        {workExperience.map((work, index) => (
-          <Link
-            key={index}
-            className="flex flex-col space-y-1 mb-4"
-            href={work.href}
-          >
-            <div className="w-full flex flex-col">
-              <p className="font-medium">⥱ {work.name}</p>
-              <p className="text-gray-600">
-                {work.position} ({work.period})
-              </p>
-            </div>
-          </Link>
-        ))}
-        See my [
-        <Link
-          href={getResumeLink()}
-          className="text-orange-600 hover:underline"
-        >
-          resume
-        </Link>
-        ] for more details.
+        <div>
+          <h2 className="text-sm font-medium text-neutral-600 dark:text-neutral-400 mb-3">
+            Work Experience
+          </h2>
+          <div className="divide-y divide-neutral-100 dark:divide-neutral-800">
+            {workExperience.map((work) => (
+              <WorkCard key={work.title} {...work} />
+            ))}
+          </div>
+          <p className="text-sm text-neutral-600 dark:text-neutral-400 mt-4">
+            See my{" "}
+            <Link
+              href={getResumeLink()}
+              className="text-neutral-900 dark:text-neutral-100 hover:underline"
+            >
+              resume
+            </Link>{" "}
+            for more details.
+          </p>
+        </div>
       </div>
     </section>
   );
