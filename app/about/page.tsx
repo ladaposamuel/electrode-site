@@ -1,123 +1,123 @@
 import Image from "next/image";
 import { getResumeLink } from "utils";
 import { TechStack } from "../components/tech-stack";
-
-const frameworks = [
-  { name: "PHP", color: "blue" },
-  { name: "Javascript", color: "yellow" },
-  { name: "MySql", color: "blue" },
-];
-
-function Badge(props) {
-  return (
-    <a
-      {...props}
-      target="_blank"
-      className="border border-neutral-200 dark:border-neutral-700 bg-neutral-50 dark:bg-neutral-800 rounded p-1 text-sm inline-flex items-center leading-4 text-neutral-900 dark:text-neutral-100 no-underline"
-    />
-  );
-}
-
-const stacks = [
-  "PHP",
-  "GIT",
-  "RabbitMQ",
-  "PostgreSQL",
-  "JavaScript",
-  "TypeScript",
-  "React",
-  "Laravel",
-  "Vue.js",
-  "MySQL",
-  "AWS",
-  "Node.js",
-];
-
-const FrameworkImages = () => (
-  <div className="pt-5">
-    {frameworks.map(({ name, color }) => (
-      <Image
-        alt={`${name} stack badge`}
-        src={`https://img.shields.io/badge/stack-${name}-${color}`}
-        width={100}
-        height={20}
-        priority
-        className="inline"
-      />
-    ))}
-  </div>
-);
+import { AboutCard } from "../components/about-card";
+import { HomepageButton } from "../components/homepage-button/homepage-button";
+import { ArrowIcon } from "../components/icons";
 
 export default function AboutPage() {
   return (
-    <section>
-      <h1 className="font-bold text-3xl font-serif">About Me</h1>
-      <p className="my-5 text-neutral-800 dark:text-neutral-200">
-        {`I'm a passionate Full-Stack Developer with over 5 years of experience, dedicated to crafting exceptional web applications. My journey in software development has been driven by an insatiable curiosity and a genuine love for problem-solving.`}
-      </p>
-      
-      <h2 className="font-bold text-2xl font-serif mt-8">What I Can Do</h2>
-      <ul className="list-disc pl-5 mt-4 text-neutral-800 dark:text-neutral-200">
-        <li>
-          Develop scalable and efficient backend systems using PHP, Laravel,
-          Node.js, and Express.js
-        </li>
-        <li>
-          Create responsive and interactive front-end applications with React,
-          Vue.js, and Next.js
-        </li>
-        <li>
-          Design and optimize database structures using MySQL, PostgreSQL, and
-          MongoDB
-        </li>
-        <li>Implement RESTful APIs and integrate third-party services</li>
-        <li>Set up and manage cloud infrastructure on AWS and DigitalOcean</li>
-        <li>Implement CI/CD pipelines and follow Agile methodologies</li>
-        <li>
-          Integrate AI and machine learning solutions, such as OpenAI, into
-          applications
-        </li>
-      </ul>
+    <div className="space-y-8">
+      <section className="space-y-4">
+        <div className="flex items-center justify-between">
+          <div>
+            <h1 className="text-2xl font-bold tracking-tighter">about me</h1>
+            <p className="text-neutral-600 dark:text-neutral-400">
+              Fullstack developer, paintball enthusiast, continuous learner
+            </p>
+          </div>
+        </div>
 
-      <h2 className="font-bold text-2xl font-serif mt-8">Tech Stack</h2>
-      <div className="mt-6">
-        <TechStack />
-      </div>
+        {/* <div className="relative overflow-hidden rounded-xl border border-neutral-200 dark:border-neutral-800">
+          <div className="relative aspect-[2/1] overflow-hidden sm:aspect-[3/1]">
+            <Image
+              alt={"Samuel Ladapo"}
+              src={"https://i.imgur.com/DEXcwFy.png"}
+              fill
+              priority
+              className="object-cover"
+            />
+          </div>
+        </div> */}
 
-      <h2 className="font-bold text-2xl font-serif mt-12">
-        Passion for Technology
-      </h2>
-      <p className="mt-4 text-neutral-800 dark:text-neutral-200">
-        {`My enthusiasm for software development goes beyond just writing code. I'm constantly exploring new technologies, attending tech conferences, and contributing to open-source projects. This passion drives me to stay at the forefront of industry trends and best practices, ensuring that I can deliver cutting-edge solutions to every project I undertake.`}
-      </p>
-
-      <h2 className="font-bold text-2xl font-serif mt-8">Beyond Coding</h2>
-      <p className="mt-4 text-neutral-800 dark:text-neutral-200">
-        {`When I'm not immersed in code, you can find me on the paintball field every Sunday. This high-energy sport not only provides an exhilarating break from the digital world but also hones my strategic thinking and teamwork skills – qualities that I bring back to my development projects.`}
-      </p>
-
-      <blockquote className="border-l-4 border-neutral-300 dark:border-neutral-700 pl-4 mt-8 italic text-neutral-800 dark:text-neutral-200">
-        "The only way to do great work is to love what you do. If you haven't
-        found it yet, keep looking. Don't settle." - Steve Jobs
-      </blockquote>
-      <p className="mt-8 text-neutral-800 dark:text-neutral-200">
-        {`I'm always excited to take on new challenges and collaborate on innovative projects. Whether you need a scalable backend system, an intuitive user interface, or a complete full-stack solution, I'm ready to bring your ideas to life with passion and expertise.`}
-      </p>
-
-      <section className="mt-10">
-        <p className="m-1">
-          Since you got here :), here's one of my favourite playlists:
+        <p className="text-neutral-800 dark:text-neutral-200 leading-relaxed">
+          I'm a passionate Full-Stack Developer with over 5 years of experience,
+          dedicated to crafting exceptional web applications. My journey in
+          software development has been driven by an insatiable curiosity and a
+          genuine love for problem-solving.
         </p>
-        <iframe
-          style={{ borderRadius: "12px" }}
-          src="https://open.spotify.com/embed/playlist/60zXXNjqoiJsYpgk9VquzE?utm_source=generator"
-          width="100%"
-          height="352"
-          allowFullScreen
-          allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture"
-          loading="lazy"
-        />
       </section>
-    </section>
+
+      <section className="space-y-4">
+        <h2 className="text-xl font-bold tracking-tighter">what I can do</h2>
+        <AboutCard
+          title="Development & Consulting"
+          gradient="linear-gradient(to right bottom, #2563eb, #1d4ed8)"
+        >
+          <div className="grid gap-6 sm:grid-cols-2">
+            <div>
+              <h3 className="font-medium mb-2 text-white/90">Backend</h3>
+              <ul className="list-disc space-y-1.5 pl-4 text-sm text-white/80">
+                <li>Scalable systems with PHP, Laravel, Node.js</li>
+                <li>Database optimization (MySQL, PostgreSQL)</li>
+                <li>RESTful APIs and microservices</li>
+                <li>Cloud infrastructure (AWS, DigitalOcean)</li>
+              </ul>
+            </div>
+            <div>
+              <h3 className="font-medium mb-2 text-white/90">Frontend</h3>
+              <ul className="list-disc space-y-1.5 pl-4 text-sm text-white/80">
+                <li>React, Vue.js, and Next.js applications</li>
+                <li>Responsive and interactive UIs</li>
+                <li>Modern state management</li>
+                <li>Performance optimization</li>
+              </ul>
+            </div>
+          </div>
+        </AboutCard>
+      </section>
+
+      <section className="space-y-4">
+        <h2 className="text-xl font-bold tracking-tighter">tech stack</h2>
+        <div className="rounded-xl border border-neutral-200 dark:border-neutral-800 p-6">
+          <TechStack />
+        </div>
+      </section>
+
+      <section className="space-y-4">
+        <h2 className="text-xl font-bold tracking-tighter">beyond coding</h2>
+        <AboutCard
+          title="Life Outside Code"
+          gradient="linear-gradient(to right bottom, #059669, #047857)"
+        >
+          <div className="space-y-4 text-sm text-white/80">
+            <p>
+              I'm constantly exploring new technologies, attending tech conferences,
+              and contributing to open-source projects. This passion drives me to
+              stay at the forefront of industry trends and best practices.
+            </p>
+            <p>
+              When I'm not immersed in code, you can find me on the paintball
+              field every Sunday. This high-energy sport hones my strategic
+              thinking and teamwork skills – qualities that I bring back to my
+              development projects.
+            </p>
+          </div>
+        </AboutCard>
+
+        <div className="rounded-xl border border-neutral-200 p-6 dark:border-neutral-800">
+          <blockquote className="text-lg font-medium text-neutral-800 dark:text-neutral-200">
+            "The only way to do great work is to love what you do. If you haven't
+            found it yet, keep looking. Don't settle."
+          </blockquote>
+          <p className="mt-2 text-sm text-neutral-600 dark:text-neutral-400">
+            — Steve Jobs
+          </p>
+        </div>
+      </section>
+
+      <section>
+        <div className="flex flex-wrap gap-2">
+          <HomepageButton href={getResumeLink()}>
+            <ArrowIcon />
+            <p className="text-sm">view resume</p>
+          </HomepageButton>
+          <HomepageButton href="/contact">
+            <ArrowIcon />
+            <p className="text-sm">get in touch</p>
+          </HomepageButton>
+        </div>
+      </section>
+    </div>
   );
 }
