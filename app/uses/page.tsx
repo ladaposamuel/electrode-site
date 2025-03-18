@@ -16,7 +16,7 @@ export default function UsesPage() {
       <div className="prose prose-neutral dark:prose-invert">
         <h3 id="computer-office">Computer / Office</h3>
         <ul>
-          <li>16&quot; Macbook Pro (2020)</li>
+          <li>16&quot; Macbook Pro (2021)</li>
           <li>31.5&quot; LG UltraFine 32UN880</li>
           <li>Logitech MX Master 3 Mouse</li>
           <li>Apple Magic Keyboard</li>
@@ -49,7 +49,7 @@ export default function UsesPage() {
         </ul>
         <h3 id="software">Software</h3>
         <ul>
-          <li>1Password</li>
+          <li>Bitwarden</li>
           <li>Spotify</li>
           <li>CleanShot X</li>
           <li>RetroClip</li>

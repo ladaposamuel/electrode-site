@@ -1,0 +1,300 @@
+---
+title: 'Building a Flexible API Monitoring Package with TypeScript - Part 5: Dashboard Service'
+publishedAt: '2024-10-13'
+summary: 'Learn how to create a dashboard service for aggregating and visualizing API monitoring data.'
+draft: false
+---
+
+## Series Overview
+
+1. [Introduction and Project Setup](/blog/building-a-flexible-api-monitoring-tool-1) 
+2. [Core Monitoring Functionality](/blog/building-a-flexible-api-monitoring-package-with-typescript-part-2)
+3. [Framework Adapters: Express, Nest.js, and Node.js](/blog/building-a-flexible-api-monitoring-package-with-typescript-part-3)
+4. [Storage Providers: In-Memory and MSSQL](/blog/building-a-flexible-api-monitoring-package-with-typescript-part-4)
+5. [Dashboard Service for Data Aggregation](/blog/building-a-flexible-api-monitoring-package-with-typescript-part-5) 📍
+6. [Advanced Features: Latency Tracking and Error Monitoring](/blog/building-a-flexible-api-monitoring-package-with-typescript-part-6)
+
+
+# Dashboard Service for Data Aggregation
+
+In this fifth part of our series, we'll build a dashboard service that aggregates and presents our monitoring data in a meaningful way. This service will help users understand their API's performance and usage patterns.
+
+## Dashboard Data Interfaces
+
+First, let's define the interfaces for our dashboard data:
+
+```typescript
+export interface DashboardMetrics {
+  overview: OverviewStats;
+  timeSeriesData: TimeSeriesData[];
+  topEndpoints: EndpointStats[];
+  errorBreakdown: ErrorStats[];
+  latencyDistribution: LatencyStats[];
+}
+
+export interface OverviewStats {
+  totalRequests: number;
+  averageLatency: number;
+  successRate: number;
+  errorRate: number;
+  uniqueEndpoints: number;
+}
+
+export interface TimeSeriesData {
+  timestamp: number;
+  requestCount: number;
+  averageLatency: number;
+  errorCount: number;
+}
+
+export interface EndpointStats {
+  endpoint: string;
+  requestCount: number;
+  averageLatency: number;
+  errorRate: number;
+}
+
+export interface ErrorStats {
+  statusCode: number;
+  count: number;
+  percentage: number;
+}
+
+export interface LatencyStats {
+  range: string;
+  count: number;
+  percentage: number;
+}
+```
+
+## Dashboard Service Implementation
+
+Now let's implement the dashboard service that will process our stored monitoring data:
+
+```typescript
+import { StorageProvider } from '../storage/interfaces/storage-provider.interface';
+import { 
+  DashboardMetrics, 
+  OverviewStats, 
+  TimeSeriesData, 
+  EndpointStats,
+  ErrorStats,
+  LatencyStats 
+} from './interfaces/dashboard.interface';
+
+export class DashboardService {
+  constructor(private storageProvider: StorageProvider) {}
+
+  async getDashboardMetrics(startDate: Date, endDate: Date): Promise<DashboardMetrics> {
+    const requests = await this.storageProvider.getRequests(startDate, endDate);
+    const stats = await this.storageProvider.getStats(startDate, endDate);
+
+    return {
+      overview: await this.getOverviewStats(requests, stats),
+      timeSeriesData: await this.getTimeSeriesData(requests),
+      topEndpoints: await this.getTopEndpoints(requests),
+      errorBreakdown: await this.getErrorBreakdown(requests),
+      latencyDistribution: await this.getLatencyDistribution(requests),
+    };
+  }
+
+  private async getOverviewStats(requests: MonitoredRequest[], stats: RequestStats): Promise<OverviewStats> {
+    const uniqueEndpoints = new Set(requests.map(req => req.request.url)).size;
+
+    return {
+      totalRequests: stats.totalRequests,
+      averageLatency: stats.averageLatency,
+      successRate: stats.successRate,
+      errorRate: stats.errorRate,
+      uniqueEndpoints,
+    };
+  }
+
+  private async getTimeSeriesData(requests: MonitoredRequest[]): Promise<TimeSeriesData[]> {
+    // Group requests by hour
+    const hourlyData = new Map<number, MonitoredRequest[]>();
+    
+    requests.forEach(req => {
+      const hourTimestamp = Math.floor(req.startTime / (1000 * 60 * 60)) * (1000 * 60 * 60);
+      if (!hourlyData.has(hourTimestamp)) {
+        hourlyData.set(hourTimestamp, []);
+      }
+      hourlyData.get(hourTimestamp)!.push(req);
+    });
+
+    return Array.from(hourlyData.entries()).map(([timestamp, hourRequests]) => ({
+      timestamp,
+      requestCount: hourRequests.length,
+      averageLatency: hourRequests.reduce((sum, req) => sum + req.latency, 0) / hourRequests.length,
+      errorCount: hourRequests.filter(req => req.response.statusCode >= 400).length,
+    }));
+  }
+
+  private async getTopEndpoints(requests: MonitoredRequest[]): Promise<EndpointStats[]> {
+    const endpointMap = new Map<string, MonitoredRequest[]>();
+
+    // Group requests by endpoint
+    requests.forEach(req => {
+      const endpoint = req.request.url;
+      if (!endpointMap.has(endpoint)) {
+        endpointMap.set(endpoint, []);
+      }
+      endpointMap.get(endpoint)!.push(req);
+    });
+
+    // Calculate stats for each endpoint
+    const endpointStats = Array.from(endpointMap.entries()).map(([endpoint, endpointRequests]) => ({
+      endpoint,
+      requestCount: endpointRequests.length,
+      averageLatency: endpointRequests.reduce((sum, req) => sum + req.latency, 0) / endpointRequests.length,
+      errorRate: (endpointRequests.filter(req => req.response.statusCode >= 400).length / endpointRequests.length) * 100,
+    }));
+
+    // Sort by request count and return top 10
+    return endpointStats
+      .sort((a, b) => b.requestCount - a.requestCount)
+      .slice(0, 10);
+  }
+
+  private async getErrorBreakdown(requests: MonitoredRequest[]): Promise<ErrorStats[]> {
+    const errorMap = new Map<number, number>();
+    const totalErrors = requests.filter(req => req.response.statusCode >= 400).length;
+
+    // Count errors by status code
+    requests.forEach(req => {
+      if (req.response.statusCode >= 400) {
+        const count = (errorMap.get(req.response.statusCode) || 0) + 1;
+        errorMap.set(req.response.statusCode, count);
+      }
+    });
+
+    return Array.from(errorMap.entries())
+      .map(([statusCode, count]) => ({
+        statusCode,
+        count,
+        percentage: (count / totalErrors) * 100,
+      }))
+      .sort((a, b) => b.count - a.count);
+  }
+
+  private async getLatencyDistribution(requests: MonitoredRequest[]): Promise<LatencyStats[]> {
+    const ranges = [
+      { max: 100, label: '0-100ms' },
+      { max: 300, label: '101-300ms' },
+      { max: 1000, label: '301-1000ms' },
+      { max: 3000, label: '1-3s' },
+      { max: Infinity, label: '>3s' },
+    ];
+
+    const distribution = ranges.map(range => ({
+      range: range.label,
+      count: requests.filter(req => {
+        const prevMax = ranges[ranges.indexOf(range) - 1]?.max || 0;
+        return req.latency > prevMax && req.latency <= range.max;
+      }).length,
+      percentage: 0, // Will be calculated below
+    }));
+
+    // Calculate percentages
+    const total = requests.length;
+    distribution.forEach(item => {
+      item.percentage = (item.count / total) * 100;
+    });
+
+    return distribution;
+  }
+}
+```
+
+## Using the Dashboard Service
+
+Here's how to use the dashboard service in your application:
+
+```typescript
+import { DashboardService } from './dashboard/dashboard-service';
+import { StorageProvider } from './storage/interfaces/storage-provider.interface';
+
+async function getDashboardData(storageProvider: StorageProvider) {
+  const dashboard = new DashboardService(storageProvider);
+  
+  // Get metrics for the last 24 hours
+  const endDate = new Date();
+  const startDate = new Date(endDate.getTime() - (24 * 60 * 60 * 1000));
+  
+  const metrics = await dashboard.getDashboardMetrics(startDate, endDate);
+  
+  return metrics;
+}
+```
+
+## Creating a REST API for the Dashboard
+
+Let's create a simple REST API to expose our dashboard data:
+
+```typescript
+import express from 'express';
+import { DashboardService } from './dashboard/dashboard-service';
+import { StorageProvider } from './storage/interfaces/storage-provider.interface';
+
+export function createDashboardRouter(storageProvider: StorageProvider) {
+  const router = express.Router();
+  const dashboard = new DashboardService(storageProvider);
+
+  router.get('/metrics', async (req, res) => {
+    try {
+      const startDate = new Date(req.query.startDate as string || Date.now() - (24 * 60 * 60 * 1000));
+      const endDate = new Date(req.query.endDate as string || Date.now());
+
+      const metrics = await dashboard.getDashboardMetrics(startDate, endDate);
+      res.json(metrics);
+    } catch (error) {
+      res.status(500).json({ error: 'Failed to fetch dashboard metrics' });
+    }
+  });
+
+  router.get('/overview', async (req, res) => {
+    try {
+      const startDate = new Date(req.query.startDate as string || Date.now() - (24 * 60 * 60 * 1000));
+      const endDate = new Date(req.query.endDate as string || Date.now());
+
+      const metrics = await dashboard.getDashboardMetrics(startDate, endDate);
+      res.json(metrics.overview);
+    } catch (error) {
+      res.status(500).json({ error: 'Failed to fetch overview stats' });
+    }
+  });
+
+  return router;
+}
+```
+
+## Example Usage with Express
+
+Here's how to integrate the dashboard into an Express application:
+
+```typescript
+import express from 'express';
+import { createDashboardRouter } from './dashboard/dashboard-router';
+import { MSSQLStorageProvider } from './storage/mssql-provider';
+
+const app = express();
+const storageProvider = new MSSQLStorageProvider('your_connection_string');
+
+// Initialize storage provider
+await storageProvider.initialize();
+
+// Mount dashboard routes
+app.use('/api/dashboard', createDashboardRouter(storageProvider));
+
+app.listen(3000, () => {
+  console.log('Dashboard server running on port 3000');
+});
+```
+
+## Next Steps
+
+With our dashboard service implemented, we now have a way to visualize and analyze our API monitoring data. In the final part of our series, we'll focus on implementing advanced features such as latency tracking and error monitoring.
+
+Stay tuned for Part 6, where we'll add these advanced monitoring capabilities to our package!
+
+[Continue to Part 6: Advanced Features](/blog/building-a-flexible-api-monitoring-package-with-typescript-part-6)

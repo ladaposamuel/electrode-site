@@ -37,7 +37,7 @@ export default async function HomePage() {
             width={120}
             priority
           />
-          <div className="mt-8 md:mt-0 ml-0 md:ml-6 space-y-2 text-neutral-500 dark:text-neutral-400">
+          <div className="mt-8 md:mt-0 ml-0 md:ml-6 space-y-1 text-neutral-500 dark:text-neutral-400">
             <a
               rel="noopener noreferrer"
               target="_blank"
@@ -57,16 +57,14 @@ export default async function HomePage() {
             </a>
 
             <Link href="/blog" className="flex items-center">
-              {"👀 Blog views:"} {views}
+              <span>👀 Blog views: {views?.toLocaleString() ?? "0"}</span>
             </Link>
 
-            <Link
-              href="/works"
-              className="venhoot-text flex items-center"
-            >
+            <Link href="/works" className="venhoot-text flex items-center">
               <span>
                 {"👷🏾 "} Currently building{" "}
-                <span className="underline">Venhoot</span> &  <span className="underline">MangoLogs</span> 
+                <span className="underline">Venhoot</span> &{" "}
+                <span className="underline">MangoLogs</span>
               </span>
             </Link>
             <Link href="/works" className="flex items-center">

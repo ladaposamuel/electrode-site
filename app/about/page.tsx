@@ -80,7 +80,7 @@ export default function AboutPage() {
       <p className="text-neutral-800 dark:text-neutral-200 mt-4">
         {stacks.map((stack, index) => (
           <>
-            <Badge key={index} href={getResumeLink()}>
+            <Badge key={index} href={getResumeLink()} className="mt-10">
               {`${stack}`}
             </Badge>{" "}
           </>

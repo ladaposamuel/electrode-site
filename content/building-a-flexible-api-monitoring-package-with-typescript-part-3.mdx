@@ -1,0 +1,276 @@
+---
+title: 'Building a Flexible API Monitoring Package with TypeScript - Part 3: Framework Adapters'
+publishedAt: '2024-10-20'
+summary: 'Building a Flexible API Monitoring Package with TypeScript part 3'
+draft: false
+---
+
+## Series Overview
+
+1. [Introduction and Project Setup](/blog/building-a-flexible-api-monitoring-tool-1) 
+2. [Core Monitoring Functionality](/blog/building-a-flexible-api-monitoring-package-with-typescript-part-2)
+3. [Framework Adapters: Express, Nest.js, and Node.js](/blog/building-a-flexible-api-monitoring-package-with-typescript-part-3) 📍
+4. [Storage Providers: In-Memory and MSSQL](/blog/building-a-flexible-api-monitoring-package-with-typescript-part-4)
+5. [Dashboard Service for Data Aggregation](/blog/building-a-flexible-api-monitoring-package-with-typescript-part-5)
+6. [Advanced Features: Latency Tracking and Error Monitoring](/blog/building-a-flexible-api-monitoring-package-with-typescript-part-6)
+
+
+
+In the previous part of our series, we covered the core functionality of our API monitoring package. 
+In this part, we'll dive into creating framework adapters to make our monitoring package work seamlessly with different Node.js frameworks. 
+We'll also explore creating storage providers to persist the monitoring data we're collecting.
+
+
+
+### Framework Adapters: Express, Nest.js, and Node.js
+Now that we have our core monitoring functionality in place, let's create adapters for different Node.js frameworks. 
+These adapters will allow our monitoring package to integrate seamlessly with Express, Nest.js, and vanilla Node.js applications.
+Let's look at the implementation for each adapter:
+## Express Adapter
+The Express adapter will integrate our monitoring package with Express.js applications. Here's how we can implement it:
+
+
+```typescript
+import { Request, Response, NextFunction } from 'express';
+
+import { Monitor, RequestData, ResponseData } from '../core/monitor';
+
+export class ExpressAdapter {
+  private monitor: Monitor;
+
+  constructor(monitor: Monitor) {
+    this.monitor = monitor;
+  }
+
+  middleware(): (req: Request, res: Response, next: NextFunction) => void {
+    return (req: Request, res: Response, next: NextFunction): void => {
+      const startTime = Date.now();
+
+      // Capture the original methods
+      const originalJson = res.json.bind(res);
+      const originalEnd = res.end.bind(res);
+      const originalSend = res.send.bind(res);
+
+      // Prepare request data
+      const requestData: RequestData = {
+        method: req.method,
+        url: req.url,
+        headers: req.headers as Record<string, string>,
+        body: req.body,
+      };
+
+      // Helper function to log request
+      const logRequest = async (body: unknown): Promise<void> => {
+        const endTime = Date.now();
+        const responseData: ResponseData = {
+          statusCode: res.statusCode,
+          headers: res.getHeaders() as Record<string, string>,
+          body,
+        };
+        try {
+          await this.monitor.logRequest(requestData, responseData, startTime, endTime);
+        } catch (error) {
+          console.error('Error logging request:', error);
+        }
+      };
+
+      // Override methods to capture response
+      res.json = function (body: unknown): Response {
+        void logRequest(body);
+        return originalJson(body);
+      };
+
+      res.end = function (chunk: unknown): Response {
+        void logRequest(chunk);
+        return originalEnd(chunk);
+      };
+
+      res.send = function (body: unknown): Response {
+        void logRequest(body);
+        return originalSend(body);
+      };
+
+      next();
+    };
+  }
+}
+```
+
+
+This adapter creates a middleware function that can be used in an Express application. It records the start time of the request, and when the response is finished, it calculates the duration and records the request details using our Monitor instance.
+### Nest.js Adapter
+For Nest.js applications, we'll create an interceptor that integrates with our monitoring package:
+
+
+```typescript
+import { Injectable, NestInterceptor, ExecutionContext, CallHandler } from '@nestjs/common';
+import { Observable } from 'rxjs';
+import { tap } from 'rxjs/operators';
+
+import { Monitor, RequestData, ResponseData } from '../core/monitor';
+
+@Injectable()
+export class NestAdapter implements NestInterceptor {
+  constructor(private monitor: Monitor) {}
+
+  intercept(context: ExecutionContext, next: CallHandler): Observable<any> {
+    const httpContext = context.switchToHttp();
+    const request = httpContext.getRequest();
+    const response = httpContext.getResponse();
+    const startTime = Date.now();
+
+    const requestData: RequestData = {
+      method: request.method,
+      url: request.url,
+      headers: request.headers,
+      body: request.body,
+    };
+
+    return next.handle().pipe(
+      tap((data) => {
+        const endTime = Date.now();
+        const responseData: ResponseData = {
+          statusCode: response.statusCode,
+          headers: response.getHeaders(),
+          body: data,
+        };
+
+        this.monitor.logRequest(requestData, responseData, startTime, endTime);
+      }),
+    );
+  }
+}
+```
+
+
+This Nest.js interceptor works similarly to the Express middleware, recording request details and duration.
+
+### Node.js Adapter
+For vanilla Node.js applications, we'll create an adapter that can be used with the built-in http or https modules:
+
+```typescript
+
+
+import { IncomingMessage, ServerResponse, Server, createServer } from 'http';
+
+import { Monitor, RequestData, ResponseData } from '../core/monitor';
+
+export class NodeAdapter {
+  constructor(private monitor: Monitor) {}
+
+  wrapServer(requestListener: (req: IncomingMessage, res: ServerResponse) => void): Server {
+    return createServer((req: IncomingMessage, res: ServerResponse) => {
+      const startTime = Date.now();
+
+      // Capture the original methods
+      const originalEnd = res.end.bind(res);
+      const originalWrite = res.write.bind(res);
+
+      let responseBody = '';
+
+      // Override methods to capture response
+      res.write = function (chunk) {
+        responseBody += chunk.toString();
+        return originalWrite.apply(this, arguments as any);
+      };
+
+      res.end = (chunk) => {
+        if (chunk) {
+          responseBody += chunk.toString();
+        }
+        const endTime = Date.now();
+
+        const requestData: RequestData = {
+          method: req.method || 'UNKNOWN',
+          url: req.url || '/',
+          headers: req.headers as Record<string, string>,
+        };
+
+        const responseData: ResponseData = {
+          statusCode: res.statusCode,
+          headers: res.getHeaders() as Record<string, string>,
+          body: responseBody,
+        };
+
+        void this.monitor.logRequest(requestData, responseData, startTime, endTime);
+        return originalEnd.apply(res, arguments as any);
+      };
+
+      requestListener(req, res);
+    });
+  }
+}
+```
+
+
+This adapter follows a similar pattern to the Express adapter but works with the native Node.js http module.
+
+### Using the Adapters
+Now that we have our adapters, let's see how they can be used in different application types:
+1. Express Application:
+
+```javascript
+import express from 'express';
+import { Monitor } from 'api-monitor';
+import { expressAdapter } from 'api-monitor/adapters';
+
+const app = express();
+const monitor = new Monitor(/* config */);
+
+app.use(expressAdapter(monitor));
+
+// Your routes and other middleware
+```
+
+
+2. Nest.js Application:
+
+```javascript
+import { Module } from '@nestjs/common';
+import { APP_INTERCEPTOR } from '@nestjs/core';
+import { Monitor } from 'api-monitor';
+import { NestAdapter } from 'api-monitor/adapters';
+
+@Module({
+  providers: [
+    {
+      provide: APP_INTERCEPTOR,
+      useFactory: () => {
+        const monitor = new Monitor(/* config */);
+        return new NestAdapter(monitor);
+      },
+    },
+  ],
+})
+export class AppModule {}
+
+```
+
+
+3. Vanilla Node.js Application:
+
+```javascript
+import http from 'http';
+import { Monitor } from 'api-monitor';
+import { nodeAdapter } from 'api-monitor/adapters';
+
+const monitor = new Monitor(/* config */);
+
+const server = http.createServer((req, res) => {
+  nodeAdapter(monitor)(req, res, () => {
+    // Your request handling logic
+  });
+});
+
+server.listen(3000);
+```
+
+
+By implementing these adapters, we've made our API monitoring package flexible
+ enough to work with various Node.js frameworks and setups. 
+ This approach allows developers to easily integrate our monitoring solution into their existing projects, regardless of the framework they're using.
+In the next part of our series, we'll focus on creating storage providers 
+to persist the monitoring data we're collecting. Stay tuned!
+
+
+

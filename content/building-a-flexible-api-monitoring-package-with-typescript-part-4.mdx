@@ -1,0 +1,301 @@
+---
+title: 'Building a Flexible API Monitoring Package with TypeScript - Part 4: Storage Providers'
+publishedAt: '2024-10-13'
+summary: 'Learn how to implement storage providers for the API monitoring package, including in-memory and MSSQL implementations.'
+draft: false
+---
+
+## Series Overview
+
+1. [Introduction and Project Setup](/blog/building-a-flexible-api-monitoring-tool-1) 
+2. [Core Monitoring Functionality](/blog/building-a-flexible-api-monitoring-package-with-typescript-part-2) 
+3. [Framework Adapters: Express, Nest.js, and Node.js](/blog/building-a-flexible-api-monitoring-package-with-typescript-part-3)
+4. [Storage Providers: In-Memory and MSSQL](/blog/building-a-flexible-api-monitoring-package-with-typescript-part-4) 📍
+5. [Dashboard Service for Data Aggregation](/blog/building-a-flexible-api-monitoring-package-with-typescript-part-5)
+6. [Advanced Features: Latency Tracking and Error Monitoring](/blog/building-a-flexible-api-monitoring-package-with-typescript-part-6)
+
+
+# Storage Providers: In-Memory and MSSQL
+
+In this fourth part of our series, we'll implement storage providers for our API monitoring package. We'll create both an in-memory provider for development and testing, and an MSSQL provider for production use.
+
+## Storage Provider Interface
+
+First, let's define the interface that all storage providers must implement:
+
+```typescript
+export interface StorageProvider {
+  store(data: MonitoredRequest): Promise<void>;
+  getStats(startDate: Date, endDate: Date): Promise<RequestStats>;
+  getRequests(startDate: Date, endDate: Date): Promise<MonitoredRequest[]>;
+  clear(): Promise<void>;
+}
+
+export interface RequestStats {
+  totalRequests: number;
+  averageLatency: number;
+  successRate: number;
+  errorRate: number;
+  requestsByEndpoint: Record<string, number>;
+  statusCodeDistribution: Record<string, number>;
+}
+```
+
+## In-Memory Storage Provider
+
+Let's implement an in-memory storage provider that's perfect for development and testing:
+
+```typescript
+import { StorageProvider, RequestStats, MonitoredRequest } from '../interfaces';
+
+export class InMemoryStorageProvider implements StorageProvider {
+  private requests: MonitoredRequest[] = [];
+
+  async store(data: MonitoredRequest): Promise<void> {
+    this.requests.push(data);
+  }
+
+  async getStats(startDate: Date, endDate: Date): Promise<RequestStats> {
+    const filteredRequests = this.requests.filter(
+      (req) => req.startTime >= startDate.getTime() && req.endTime <= endDate.getTime()
+    );
+
+    const totalRequests = filteredRequests.length;
+    const totalLatency = filteredRequests.reduce((sum, req) => sum + req.latency, 0);
+    const successfulRequests = filteredRequests.filter((req) => req.response.statusCode < 400);
+
+    const requestsByEndpoint: Record<string, number> = {};
+    const statusCodeDistribution: Record<string, number> = {};
+
+    filteredRequests.forEach((req) => {
+      // Track requests by endpoint
+      requestsByEndpoint[req.request.url] = (requestsByEndpoint[req.request.url] || 0) + 1;
+
+      // Track status code distribution
+      const statusCode = req.response.statusCode.toString();
+      statusCodeDistribution[statusCode] = (statusCodeDistribution[statusCode] || 0) + 1;
+    });
+
+    return {
+      totalRequests,
+      averageLatency: totalRequests > 0 ? totalLatency / totalRequests : 0,
+      successRate: totalRequests > 0 ? (successfulRequests.length / totalRequests) * 100 : 0,
+      errorRate: totalRequests > 0 ? ((totalRequests - successfulRequests.length) / totalRequests) * 100 : 0,
+      requestsByEndpoint,
+      statusCodeDistribution,
+    };
+  }
+
+  async getRequests(startDate: Date, endDate: Date): Promise<MonitoredRequest[]> {
+    return this.requests.filter(
+      (req) => req.startTime >= startDate.getTime() && req.endTime <= endDate.getTime()
+    );
+  }
+
+  async clear(): Promise<void> {
+    this.requests = [];
+  }
+}
+```
+
+## MSSQL Storage Provider
+
+For production environments, let's implement an MSSQL storage provider:
+
+```typescript
+import { ConnectionPool, Request } from 'mssql';
+import { StorageProvider, RequestStats, MonitoredRequest } from '../interfaces';
+
+export class MSSQLStorageProvider implements StorageProvider {
+  private pool: ConnectionPool;
+
+  constructor(connectionString: string) {
+    this.pool = new ConnectionPool(connectionString);
+  }
+
+  async initialize(): Promise<void> {
+    await this.pool.connect();
+    await this.createTablesIfNotExist();
+  }
+
+  private async createTablesIfNotExist(): Promise<void> {
+    const request = new Request(this.pool);
+    
+    await request.query(`
+      IF NOT EXISTS (SELECT * FROM sysobjects WHERE name='monitored_requests' AND xtype='U')
+      CREATE TABLE monitored_requests (
+        id VARCHAR(50) PRIMARY KEY,
+        method VARCHAR(10),
+        url VARCHAR(500),
+        status_code INT,
+        start_time BIGINT,
+        end_time BIGINT,
+        latency INT,
+        service_name VARCHAR(100),
+        request_headers NVARCHAR(MAX),
+        response_headers NVARCHAR(MAX),
+        request_body NVARCHAR(MAX),
+        response_body NVARCHAR(MAX)
+      )
+    `);
+  }
+
+  async store(data: MonitoredRequest): Promise<void> {
+    const request = new Request(this.pool);
+    
+    await request.query`
+      INSERT INTO monitored_requests (
+        id, method, url, status_code, start_time, end_time, 
+        latency, service_name, request_headers, response_headers,
+        request_body, response_body
+      )
+      VALUES (
+        ${data.id},
+        ${data.request.method},
+        ${data.request.url},
+        ${data.response.statusCode},
+        ${data.startTime},
+        ${data.endTime},
+        ${data.latency},
+        ${data.serviceName},
+        ${JSON.stringify(data.request.headers)},
+        ${JSON.stringify(data.response.headers)},
+        ${JSON.stringify(data.request.body)},
+        ${JSON.stringify(data.response.body)}
+      )
+    `;
+  }
+
+  async getStats(startDate: Date, endDate: Date): Promise<RequestStats> {
+    const request = new Request(this.pool);
+    
+    const result = await request.query`
+      SELECT 
+        COUNT(*) as totalRequests,
+        AVG(latency) as averageLatency,
+        SUM(CASE WHEN status_code < 400 THEN 1 ELSE 0 END) * 100.0 / COUNT(*) as successRate,
+        SUM(CASE WHEN status_code >= 400 THEN 1 ELSE 0 END) * 100.0 / COUNT(*) as errorRate
+      FROM monitored_requests
+      WHERE start_time >= ${startDate.getTime()} AND end_time <= ${endDate.getTime()}
+    `;
+
+    const endpointStats = await request.query`
+      SELECT url, COUNT(*) as count
+      FROM monitored_requests
+      WHERE start_time >= ${startDate.getTime()} AND end_time <= ${endDate.getTime()}
+      GROUP BY url
+    `;
+
+    const statusCodeStats = await request.query`
+      SELECT status_code, COUNT(*) as count
+      FROM monitored_requests
+      WHERE start_time >= ${startDate.getTime()} AND end_time <= ${endDate.getTime()}
+      GROUP BY status_code
+    `;
+
+    return {
+      totalRequests: result.recordset[0].totalRequests,
+      averageLatency: result.recordset[0].averageLatency,
+      successRate: result.recordset[0].successRate,
+      errorRate: result.recordset[0].errorRate,
+      requestsByEndpoint: Object.fromEntries(
+        endpointStats.recordset.map(row => [row.url, row.count])
+      ),
+      statusCodeDistribution: Object.fromEntries(
+        statusCodeStats.recordset.map(row => [row.status_code.toString(), row.count])
+      ),
+    };
+  }
+
+  async getRequests(startDate: Date, endDate: Date): Promise<MonitoredRequest[]> {
+    const request = new Request(this.pool);
+    
+    const result = await request.query`
+      SELECT * FROM monitored_requests
+      WHERE start_time >= ${startDate.getTime()} AND end_time <= ${endDate.getTime()}
+    `;
+
+    return result.recordset.map(row => ({
+      id: row.id,
+      request: {
+        method: row.method,
+        url: row.url,
+        headers: JSON.parse(row.request_headers),
+        body: JSON.parse(row.request_body),
+      },
+      response: {
+        statusCode: row.status_code,
+        headers: JSON.parse(row.response_headers),
+        body: JSON.parse(row.response_body),
+      },
+      startTime: row.start_time,
+      endTime: row.end_time,
+      latency: row.latency,
+      serviceName: row.service_name,
+    }));
+  }
+
+  async clear(): Promise<void> {
+    const request = new Request(this.pool);
+    await request.query('TRUNCATE TABLE monitored_requests');
+  }
+}
+```
+
+## Using the Storage Providers
+
+Here's how to use these storage providers with our monitoring package:
+
+```typescript
+import { Monitor } from './core/monitor';
+import { InMemoryStorageProvider, MSSQLStorageProvider } from './storage';
+
+// For development/testing
+const inMemoryStorage = new InMemoryStorageProvider();
+const devMonitor = new Monitor({
+  storageProvider: inMemoryStorage,
+  // other config options...
+});
+
+// For production
+const mssqlStorage = new MSSQLStorageProvider('your_connection_string');
+await mssqlStorage.initialize();
+const prodMonitor = new Monitor({
+  storageProvider: mssqlStorage,
+  // other config options...
+});
+```
+
+## Storage Provider Factory
+
+To make it easier to switch between storage providers, we can create a factory:
+
+```typescript
+export enum StorageType {
+  InMemory = 'in-memory',
+  MSSQL = 'mssql',
+}
+
+export class StorageProviderFactory {
+  static create(type: StorageType, config?: any): StorageProvider {
+    switch (type) {
+      case StorageType.InMemory:
+        return new InMemoryStorageProvider();
+      case StorageType.MSSQL:
+        const provider = new MSSQLStorageProvider(config.connectionString);
+        provider.initialize();
+        return provider;
+      default:
+        throw new Error(`Unsupported storage type: ${type}`);
+    }
+  }
+}
+```
+
+## Next Steps
+
+With our storage providers implemented, we now have a way to persistently store and analyze our API monitoring data. In the next part of our series, we'll focus on building a dashboard service that will help us visualize and make sense of all this collected data.
+
+Stay tuned for Part 5, where we'll create a dashboard service for data aggregation and visualization!
+
+[Continue to Part 5: Dashboard Service for Data Aggregation](/blog/building-a-flexible-api-monitoring-package-with-typescript-part-5)

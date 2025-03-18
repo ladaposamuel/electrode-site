@@ -1,0 +1,502 @@
+---
+title: 'Building a Solana Tip Jar with React and TypeScript'
+publishedAt: '2024-11-25'
+summary: 'Learn how to create a beautiful tip jar component that accepts SOL payments on the Solana blockchain'
+draft: false
+---
+
+
+# Introduction
+
+In this tutorial, we'll build a sleek and functional tip jar component that allows users to send SOL tokens on the Solana blockchain. We'll use React, TypeScript, and the Solana Web3.js library, along with some beautiful UI components from shadcn/ui.
+
+
+![a screenshot](https://i.imgur.com/xWHqjho.png)
+
+## Prerequisites
+Before we begin, make sure you have:
+
+- Basic knowledge of React and TypeScript
+- Node.js installed on your machine
+- A Solana wallet (Phantom or Solflare)
+- Some SOL tokens on the Devnet network for testing
+
+
+## Project Setup
+First, let's look at the dependencies we need. Our project uses several key packages, below is our `package.json`,
+you may add this to your empty or new directory to kick start the project 
+
+```bash
+# create a new directory
+
+mkdir solana-tip-jar
+cd solana-tip-jar
+
+# create a new package.json file
+touch package.json
+
+```
+
+Copy and paste the following code into the package.json file:
+
+```json
+{
+  "name": "solana-tip-jar",
+  "private": true,
+  "version": "0.0.0",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc -b && vite build",
+    "lint": "eslint .",
+    "preview": "vite preview"
+  },
+  "dependencies": {
+    "@hookform/resolvers": "^3.9.0",
+    "@radix-ui/react-alert-dialog": "^1.1.1",
+    "@radix-ui/react-avatar": "^1.1.0",
+    "@radix-ui/react-dialog": "^1.1.1",
+    "@radix-ui/react-icons": "^1.3.0",
+    "@radix-ui/react-label": "^2.1.0",
+    "@radix-ui/react-slot": "^1.1.0",
+    "@radix-ui/react-toast": "^1.2.1",
+    "@solana/wallet-adapter-base": "^0.9.23",
+    "@solana/wallet-adapter-react": "^0.15.35",
+    "@solana/wallet-adapter-react-ui": "^0.9.35",
+    "@solana/wallet-adapter-wallets": "^0.19.32",
+    "@solana/web3.js": "^1.91.1",
+    "class-variance-authority": "^0.7.0",
+    "clsx": "^2.1.1",
+    "lucide-react": "^0.446.0",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1",
+    "react-hook-form": "^7.53.0",
+    "tailwind-merge": "^2.5.2",
+    "tailwindcss-animate": "^1.0.7"
+  },
+  "devDependencies": {
+    "@types/node": "^22.7.3",
+    "@types/react": "^18.3.9",
+    "@types/react-dom": "^18.3.0",
+    "@vitejs/plugin-react": "^4.3.1",
+    "autoprefixer": "^10.4.20",
+    "postcss": "^8.4.47",
+    "tailwindcss": "^3.4.13",
+    "typescript": "^5.5.3",
+    "vite": "^5.4.8"
+  }
+}
+```
+
+Run the following command to install the dependencies:
+
+```bash
+npm install
+```
+
+This will install the required packages and their dependencies.
+
+
+The main packages we'll use are:
+
+- `@solana/web3.js` - Core Solana blockchain interactions
+- `@solana/wallet-adapter-react` - React hooks for Solana wallet integration
+- `@solana/wallet-adapter-wallets` - Popular Solana wallet adapters
+- `shadcn/ui` components for the UI
+
+
+
+
+## Creating the Wallet Provider
+
+Before we can accept tips, we need to set up the Solana wallet connection. Let's create a `WalletProvider` component:
+
+> What is React Provider? A React Provider is a component that provides a value to its children. In this case, the WalletProvider provides the Solana wallet connection to its children, you can read more about React Providers [here](https://react.dev/reference/react/Component#provider).
+
+Create a new file called `WalletProvider.tsx` in the `src/components` directory.
+
+```bash
+touch src/components/WalletProvider.tsx
+```
+
+Copy and paste the following code into the file:
+
+```typescript
+import { WalletAdapterNetwork } from '@solana/wallet-adapter-base';
+import {
+  ConnectionProvider,
+  WalletProvider as SolanaWalletProvider,
+} from '@solana/wallet-adapter-react';
+import { WalletModalProvider } from '@solana/wallet-adapter-react-ui';
+import {
+  PhantomWalletAdapter,
+  SolflareWalletAdapter,
+} from '@solana/wallet-adapter-wallets';
+import { clusterApiUrl } from '@solana/web3.js';
+import { useMemo } from 'react';
+
+export function WalletProvider({ children }: { children: React.ReactNode }) {
+  const network = WalletAdapterNetwork.Devnet;
+  const endpoint = useMemo(() => clusterApiUrl(network), [network]);
+  const wallets = useMemo(
+    () => [new PhantomWalletAdapter(), new SolflareWalletAdapter()],
+    []
+  );
+
+  return (
+    <ConnectionProvider endpoint={endpoint}>
+      <SolanaWalletProvider wallets={wallets} autoConnect>
+        <WalletModalProvider>{children}</WalletModalProvider>
+      </SolanaWalletProvider>
+    </ConnectionProvider>
+  );
+}
+
+```
+
+
+This provider:
+
+- Sets up connection to Solana's Devnet network
+- Configures supported wallets (Phantom and Solflare)
+- Provides wallet connection state and functions to child components
+
+## Building the Tip Jar Component
+Now let's create our main `TipJar` component. Here's the complete implementation:
+
+Create a new file called `TipJar.tsx` in the `src/components` directory.
+
+```bash
+touch src/components/TipJar.tsx
+```
+
+Copy and paste the following code into the file, and remember to replace the wallet address with your own recipient address 😉: 
+
+```typescript
+import { useConnection, useWallet } from "@solana/wallet-adapter-react";
+import { WalletMultiButton } from "@solana/wallet-adapter-react-ui";
+import {
+  LAMPORTS_PER_SOL,
+  PublicKey,
+  Transaction,
+  SystemProgram,
+} from "@solana/web3.js";
+import { Coffee } from "lucide-react";
+import { useState } from "react";
+
+import { Button } from "@/components/ui/button";
+import { Card } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { useToast } from "@/hooks/use-toast";
+
+// TODO: replace with actual recipient address
+const RECIPIENT_ADDRESS = "7PFMLp3fxFuzVG5ZhJKiJ2aW7tTq86KfWpigieZu76uQ"; 
+
+export function TipJar() {
+  const { connection } = useConnection();
+  const { publicKey, sendTransaction } = useWallet();
+  const [amount, setAmount] = useState("0.1");
+  const { toast } = useToast();
+
+  const handleSendTip = async () => {
+    if (!publicKey) return;
+
+    try {
+      const recipientPubKey = new PublicKey(RECIPIENT_ADDRESS);
+      const lamports = parseFloat(amount) * LAMPORTS_PER_SOL;
+
+      const transaction = new Transaction().add(
+        SystemProgram.transfer({
+          fromPubkey: publicKey,
+          toPubkey: recipientPubKey,
+          lamports,
+        })
+      );
+
+      const signature = await sendTransaction(transaction, connection);
+      await connection.confirmTransaction(signature, "confirmed");
+
+      toast({
+        title: "Thank you!",
+        description: `Tip of ${amount} SOL sent successfully!`,
+      });
+    } catch (error) {
+      console.log("🚀 ~ handleSendTip ~ error:", error);
+      toast({
+        variant: "destructive",
+        title: "Error",
+        description: "Failed to send tip. Please try again.",
+      });
+    }
+  };
+
+  return (
+    <Card className="w-full max-w-md p-6 space-y-6">
+      <div className="flex flex-col items-center space-y-4">
+        <div className="p-3 bg-primary/10 rounded-full">
+          <Coffee className="w-8 h-8 text-primary" />
+        </div>
+        <h2 className="text-2xl font-bold text-center">Support My Work</h2>
+        <p className="text-center text-muted-foreground">
+          If you enjoy my content, consider buying me a coffee with SOL!
+        </p>
+      </div>
+
+      <div className="space-y-4">
+        <div className="space-y-2">
+          <Label htmlFor="amount">Amount (SOL)</Label>
+          <Input
+            id="amount"
+            type="number"
+            step="0.1"
+            min="0.1"
+            value={amount}
+            onChange={(e) => setAmount(e.target.value)}
+          />
+        </div>
+
+        {publicKey ? (
+          <Button
+            className="w-full"
+            size="lg"
+            onClick={handleSendTip}
+            disabled={!amount || parseFloat(amount) <= 0}
+          >
+            Send {amount} SOL
+          </Button>
+        ) : (
+          <WalletMultiButton className="w-full !bg-primary hover:!bg-primary/90 !h-11" />
+        )}
+      </div>
+
+      <div className="text-center text-sm text-muted-foreground">
+        Connected: {publicKey?.toBase58().slice(0, 8)}...
+      </div>
+    </Card>
+  );
+}
+
+```
+
+
+Let's break down the key parts:
+1. State and Hooks Setup
+
+```typescript
+const { connection } = useConnection();
+const { publicKey, sendTransaction } = useWallet();
+const [amount, setAmount] = useState("0.1");
+const { toast } = useToast();
+
+```
+
+
+We use:
+- `useConnection` to get the Solana network connection
+- `useWallet` to access the connected wallet
+- `useState` to manage the tip amount
+- `useToast` for showing success/error messages
+
+2. Transaction Handler
+The `handleSendTip` function processes the SOL transfer:
+
+```typescript
+
+const handleSendTip = async () => {
+  if (!publicKey) return;
+
+  try {
+    const recipientPubKey = new PublicKey(RECIPIENT_ADDRESS);
+    const lamports = parseFloat(amount) * LAMPORTS_PER_SOL;
+
+    const transaction = new Transaction().add(
+      SystemProgram.transfer({
+        fromPubkey: publicKey,
+        toPubkey: recipientPubKey,
+        lamports,
+      })
+    );
+
+    const signature = await sendTransaction(transaction, connection);
+    await connection.confirmTransaction(signature, "confirmed");
+
+    toast({
+      title: "Thank you!",
+      description: `Tip of ${amount} SOL sent successfully!`,
+    });
+  } catch (error) {
+    console.log("Error:", error);
+    toast({
+      variant: "destructive",
+      title: "Error",
+      description: "Failed to send tip. Please try again.",
+    });
+  }
+};
+```
+This function:
+- Creates a new transaction to transfer SOL
+- Converts the amount from SOL to lamports (Solana's smallest unit) 
+- Sends and confirms the transaction
+- Shows a success or error toast message
+
+3. User Interface
+
+> The UI powered by ShadcnUI, a React UI library that provides a set of pre-built components for building user interfaces. 
+We will use the Card component to create a styled container for the tip form. 
+The Card component has several props that can be used to customize its appearance, such as the className prop, which allows us to add custom CSS classes to the component.
+
+It consists of:
+
+- A coffee icon header
+- Input field for the tip amount
+- Connect wallet button or send tip button
+- Connected wallet address display
+
+```typescript
+return (
+  <Card className="w-full max-w-md p-6 space-y-6">
+    {/* Header */}
+    <div className="flex flex-col items-center space-y-4">
+      <div className="p-3 bg-primary/10 rounded-full">
+        <Coffee className="w-8 h-8 text-primary" />
+      </div>
+      <h2 className="text-2xl font-bold text-center">Support My Work</h2>
+      <p className="text-center text-muted-foreground">
+        If you enjoy my content, consider buying me a coffee with SOL!
+      </p>
+    </div>
+
+    {/* Input and Button */}
+    <div className="space-y-4">
+      <div className="space-y-2">
+        <Label htmlFor="amount">Amount (SOL)</Label>
+        <Input
+          id="amount"
+          type="number"
+          step="0.1"
+          min="0.1"
+          value={amount}
+          onChange={(e) => setAmount(e.target.value)}
+        />
+      </div>
+
+      {publicKey ? (
+        <Button
+          className="w-full"
+          size="lg"
+          onClick={handleSendTip}
+          disabled={!amount || parseFloat(amount) <= 0}
+        >
+          Send {amount} SOL
+        </Button>
+      ) : (
+        <WalletMultiButton className="w-full !bg-primary hover:!bg-primary/90 !h-11" />
+      )}
+    </div>
+  </Card>
+);
+
+```
+
+
+
+## Integrating into Your App
+Finally, wrap your app with the `WalletProvider` and add the `TipJar` component:
+
+
+```typescript
+import { TipJar } from '@/components/tip-jar';
+import { WalletProvider } from '@/components/wallet-provider';
+import { Toaster } from '@/components/ui/toaster';
+
+function App() {
+  return (
+    <WalletProvider>
+      <div className="min-h-screen bg-gradient-to-b from-background to-muted flex items-center justify-center p-4">
+        <TipJar />
+      </div>
+      <Toaster />
+    </WalletProvider>
+  );
+}
+
+export default App;
+```
+
+
+Here's how your directory structure should look like:
+
+
+```bash
+
+➜  solana-tip-jar tree -L 5 -I 'node_modules'
+.
+├── components.json
+├── eslint.config.js
+├── index.html
+├── package-lock.json
+├── package.json
+├── postcss.config.js
+├── src
+│   ├── App.css
+│   ├── App.tsx
+│   ├── components
+│   │   ├── tip-jar.tsx
+│   │   ├── ui
+│   │   │   ├── ...
+│   │   │   └── tooltip.tsx
+│   │   └── wallet-provider.tsx
+│   ├── hooks
+│   │   └── use-toast.ts
+│   ├── index.css
+│   ├── lib
+│   │   └── utils.ts
+│   ├── main.tsx
+│   └── vite-env.d.ts
+├── tailwind.config.js
+├── tsconfig.app.json
+├── tsconfig.json
+├── tsconfig.node.json
+└── vite.config.ts
+
+6 directories, 67 files
+```
+
+Here's the link to the [full code](https://github.com/ladaposamuel/solana-tip-jar) on GitHub.
+
+
+
+## Testing the Tip Jar
+
+To test your tip jar:
+1. Make sure you have a Phantom or Solflare wallet installed
+2. Switch your wallet to Devnet network
+3. Get some Devnet SOL from a faucet
+4. Connect your wallet and try sending a tip
+
+
+## Video Demo
+![video demo](https://i.imgur.com/z5zEmiJ.gif)
+
+## Conclusion
+
+You now have a fully functional Solana tip jar! This implementation:
+- Provides a clean, professional UI
+- Handles wallet connections seamlessly
+- Processes SOL transfers securely
+- Shows helpful feedback to users
+
+The complete code is available in the [repository](https://github.com/ladaposamuel/solana-tip-jar), 
+and you can customize the styling and functionality to match your needs.
+
+## Next Steps
+To enhance your tip jar, consider:
+- Adding support for SPL tokens
+- Implementing transaction history
+- Adding different tip amounts as quick-select buttons
+- Creating an animation when tips are received
+
+Remember to always test thoroughly on Devnet before deploying to Mainnet, and never expose private keys or sensitive information in your code.
+

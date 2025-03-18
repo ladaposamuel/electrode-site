@@ -1,0 +1,156 @@
+---
+title: 'Building a Flexible API Monitoring Package with TypeScript - Part 2: Core Monitoring Functionality'
+publishedAt: '2024-10-20'
+summary: 'Learn how to create a versatile API monitoring package using TypeScript that works with Express, Nest.js, and vanilla Node.js applications.'
+draft: false
+---
+
+## Series Overview
+
+1. [Introduction and Project Setup](/blog/building-a-flexible-api-monitoring-tool-1) 
+2. [Core Monitoring Functionality](/blog/building-a-flexible-api-monitoring-package-with-typescript-part-2) 📍
+3. [Framework Adapters: Express, Nest.js, and Node.js](/blog/building-a-flexible-api-monitoring-package-with-typescript-part-3)
+4. [Storage Providers: In-Memory and MSSQL](/blog/building-a-flexible-api-monitoring-package-with-typescript-part-4)
+5. [Dashboard Service for Data Aggregation](/blog/building-a-flexible-api-monitoring-package-with-typescript-part-5)
+6. [Advanced Features: Latency Tracking and Error Monitoring](/blog/building-a-flexible-api-monitoring-package-with-typescript-part-6)
+
+
+## Core Monitoring Functionality
+
+Now that we have our project structure set up, let's dive into implementing the core monitoring functionality. We'll start by creating the central `Monitor` class, which will be responsible for intercepting requests, collecting data, and managing the overall monitoring process.
+
+### The Monitor Class
+Let's begin by creating the `Monitor` class in the `src/core/monitor.ts` file. This class will be the heart of our API monitoring system.
+
+```javascript
+import { Logger } from './logger';
+import { Config } from './interfaces/config.interface';
+
+export class Monitor {
+  private logger: Logger;
+  private config: Config;
+
+  constructor(config: Config) {
+    this.config = config;
+    this.logger = new Logger(config.logLevel);
+  }
+
+  public start(): void {
+    this.logger.info('API Monitor started');
+    // Initialize monitoring here
+  }
+
+  public stop(): void {
+    this.logger.info('API Monitor stopped');
+    // Clean up resources here
+  }
+
+  public recordRequest(req: any, res: any): void {
+    // Implement request recording logic
+    this.logger.debug('Request recorded');
+  }
+
+  // Add more methods for data collection and processing
+}
+```
+
+
+This basic structure sets up our Monitor class with methods to start and stop monitoring, as well as a method to record incoming requests. We'll expand on these methods as we progress through the series.
+### The Logger Class
+To handle logging within our monitoring system, we'll implement a simple Logger class. This will allow us to control the verbosity of our logs and provide consistent logging across the package.
+
+```javascript
+export enum LogLevel {
+  ERROR = 0,
+  WARN = 1,
+  INFO = 2,
+  DEBUG = 3,
+}
+
+export class Logger {
+  private level: LogLevel;
+
+  constructor(level: LogLevel = LogLevel.INFO) {
+    this.level = level;
+  }
+
+  public error(message: string): void {
+    if (this.level >= LogLevel.ERROR) {
+      console.error(`[ERROR] ${message}`);
+    }
+  }
+
+  public warn(message: string): void {
+    if (this.level >= LogLevel.WARN) {
+      console.warn(`[WARN] ${message}`);
+    }
+  }
+
+  public info(message: string): void {
+    if (this.level >= LogLevel.INFO) {
+      console.info(`[INFO] ${message}`);
+    }
+  }
+
+  public debug(message: string): void {
+    if (this.level >= LogLevel.DEBUG) {
+      console.debug(`[DEBUG] ${message}`);
+    }
+  }
+}
+
+```
+
+
+This Logger class provides different log levels and methods to log messages at each level. The logging is controlled by the level property, which determines which messages are actually output.
+Configuration Interface
+To ensure type safety and provide a clear structure for our monitor's configuration, let's define a Config interface:
+
+```javascript
+
+import { LogLevel } from '../logger';
+
+export interface Config {
+  logLevel: LogLevel;
+  // Add more configuration options as needed
+}
+```
+
+This interface will help us maintain a consistent configuration structure throughout our package.
+Putting It All Together
+Now that we have our basic Monitor and Logger classes, as well as our Config interface, we can start to see how our API monitoring package will come together. Here's an example of how we might use these components:
+
+```javascript
+import { Monitor } from './core/monitor';
+import { Config } from './core/interfaces/config.interface';
+import { LogLevel } from './core/logger';
+
+const config: Config = {
+  logLevel: LogLevel.DEBUG,
+  // Add more configuration options as needed
+};
+
+const monitor = new Monitor(config);
+monitor.start();
+
+// Later in your application...
+monitor.stop();
+```
+
+This example shows how we can create and start a Monitor instance with a custom configuration.
+
+### Next Steps
+
+With our core monitoring functionality in place, we're ready to move on to the next phase of our API monitoring package. In the upcoming articles, we'll cover:
+1. Implementing framework-specific adapters for Express, Nest.js, and vanilla Node.js
+Creating storage providers for persisting monitoring data
+3. Developing a dashboard service for data aggregation and visualization
+4. Adding advanced features like latency tracking and error monitoring
+
+Stay tuned for the next part of our series, where we'll dive into creating framework adapters to make our monitoring package work seamlessly with different Node.js frameworks.
+This continuation builds upon the project structure you've set up and aligns with the core files (monitor.ts and logger.ts) found in the mangologs repository. The article provides a solid foundation for the core monitoring functionality while setting the stage for future enhancements and integrations.
+
+Click here to view the part 3 of this series.
+🔥🔥
+
+[Building a Flexible API Monitoring Package with TypeScript part 3](https://electrode.dev/blog/building-a-flexible-api-monitoring-package-with-typescript-part-3)

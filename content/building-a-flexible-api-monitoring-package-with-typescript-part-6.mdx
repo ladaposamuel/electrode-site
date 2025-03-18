@@ -1,0 +1,357 @@
+---
+title: 'Building a Flexible API Monitoring Package with TypeScript - Part 6: Advanced Features'
+publishedAt: '2024-10-13'
+summary: 'Learn how to implement advanced features like latency tracking, error monitoring, and real-time alerts in our API monitoring package.'
+draft: false
+---
+
+
+## Series Overview
+
+1. [Introduction and Project Setup](/blog/building-a-flexible-api-monitoring-tool-1) 
+2. [Core Monitoring Functionality](/blog/building-a-flexible-api-monitoring-package-with-typescript-part-2)
+3. [Framework Adapters: Express, Nest.js, and Node.js](/blog/building-a-flexible-api-monitoring-package-with-typescript-part-3)
+4. [Storage Providers: In-Memory and MSSQL](/blog/building-a-flexible-api-monitoring-package-with-typescript-part-4)
+5. [Dashboard Service for Data Aggregation](/blog/building-a-flexible-api-monitoring-package-with-typescript-part-5)
+6. [Advanced Features: Latency Tracking and Error Monitoring](/blog/building-a-flexible-api-monitoring-package-with-typescript-part-6) 📍
+
+
+
+# Advanced Features: Latency Tracking, Error Monitoring, and Real-Time Alerts
+
+In this final part of our series, I'll implement advanced features to make our API monitoring package more powerful and insightful.
+
+## Enhanced Latency Tracking
+
+Let's implement detailed latency tracking with percentiles and histograms:
+
+```typescript
+export interface LatencyHistogram {
+  buckets: {
+    upperBound: number;
+    count: number;
+  }[];
+}
+
+export class LatencyTracker {
+  private latencyBuckets: number[] = [];
+  private readonly bucketBoundaries = [10, 50, 100, 200, 500, 1000, 2000, 5000];
+
+  addLatency(latencyMs: number): void {
+    this.latencyBuckets.push(latencyMs);
+  }
+
+  getPercentile(percentile: number): number {
+    if (this.latencyBuckets.length === 0) return 0;
+    
+    const sorted = [...this.latencyBuckets].sort((a, b) => a - b);
+    const index = Math.ceil((percentile / 100) * sorted.length) - 1;
+    return sorted[index];
+  }
+
+  getHistogram(): LatencyHistogram {
+    const histogram: LatencyHistogram = {
+      buckets: this.bucketBoundaries.map(bound => ({
+        upperBound: bound,
+        count: 0
+      }))
+    };
+
+    this.latencyBuckets.forEach(latency => {
+      const bucketIndex = this.bucketBoundaries.findIndex(bound => latency <= bound);
+      if (bucketIndex !== -1) {
+        histogram.buckets[bucketIndex].count++;
+      }
+    });
+
+    return histogram;
+  }
+
+  clearOldData(retentionPeriod: number): void {
+    const cutoffTime = Date.now() - retentionPeriod;
+    this.latencyBuckets = this.latencyBuckets.filter(bucket => bucket > cutoffTime);
+  }
+}
+```
+
+## Error Monitoring with Context
+
+Let's enhance our error monitoring capabilities:
+
+```typescript
+export interface ErrorContext {
+  timestamp: number;
+  statusCode: number;
+  endpoint: string;
+  method: string;
+  requestHeaders: Record<string, string>;
+  requestBody?: any;
+  stackTrace?: string;
+  userAgent?: string;
+  ipAddress?: string;
+}
+
+export interface ErrorSummary {
+  errorType: string;
+  count: number;
+  lastOccurred: number;
+  topEndpoints: EndpointSummary[];
+  statusCodeDistribution: StatusCodeDistribution;
+}
+
+export class ErrorMonitor {
+  private errors: Map<string, ErrorContext[]> = new Map();
+  private readonly maxErrorsPerType = 1000;
+
+  trackError(error: Error, context: ErrorContext): void {
+    const errorKey = error.name;
+    if (!this.errors.has(errorKey)) {
+      this.errors.set(errorKey, []);
+    }
+
+    const errorList = this.errors.get(errorKey)!;
+    errorList.push(context);
+
+    // Maintain size limit per error type
+    if (errorList.length > this.maxErrorsPerType) {
+      errorList.shift();
+    }
+  }
+
+  getErrorSummary(): ErrorSummary[] {
+    return Array.from(this.errors.entries()).map(([errorType, contexts]) => ({
+      errorType,
+      count: contexts.length,
+      lastOccurred: Math.max(...contexts.map(c => c.timestamp)),
+      topEndpoints: this.getTopEndpoints(contexts),
+      statusCodeDistribution: this.getStatusCodeDistribution(contexts)
+    }));
+  }
+
+  private getTopEndpoints(contexts: ErrorContext[]): EndpointSummary[] {
+    const endpointMap = new Map<string, number>();
+    
+    contexts.forEach(context => {
+      const key = `${context.method} ${context.endpoint}`;
+      endpointMap.set(key, (endpointMap.get(key) || 0) + 1);
+    });
+
+    return Array.from(endpointMap.entries())
+      .map(([endpoint, count]) => ({ endpoint, count }))
+      .sort((a, b) => b.count - a.count)
+      .slice(0, 5);
+  }
+
+  private getStatusCodeDistribution(contexts: ErrorContext[]): StatusCodeDistribution {
+    const distribution: Record<number, number> = {};
+    
+    contexts.forEach(context => {
+      distribution[context.statusCode] = (distribution[context.statusCode] || 0) + 1;
+    });
+
+    return distribution;
+  }
+}
+```
+
+## Real-Time Alerts
+
+Finally, let's implement a real-time alerting system:
+
+```typescript
+export interface AlertRule {
+  id: string;
+  metric: 'latency' | 'error_rate' | 'request_rate';
+  threshold: number;
+  duration: number; // in seconds
+  severity: 'info' | 'warning' | 'critical';
+  notificationChannels: NotificationChannel[];
+}
+
+export interface Alert {
+  id: string;
+  ruleId: string;
+  metric: string;
+  value: number;
+  threshold: number;
+  severity: string;
+  timestamp: number;
+  resolved: boolean;
+}
+
+export class AlertManager {
+  private rules: AlertRule[] = [];
+  private activeAlerts: Alert[] = [];
+  private notificationManager: NotificationManager;
+
+  constructor(notificationManager: NotificationManager) {
+    this.notificationManager = notificationManager;
+  }
+
+  addRule(rule: AlertRule): void {
+    this.rules.push(rule);
+  }
+
+  removeRule(ruleId: string): void {
+    this.rules = this.rules.filter(rule => rule.id !== ruleId);
+  }
+
+  async checkMetrics(metrics: MonitoringMetrics): Promise<void> {
+    for (const rule of this.rules) {
+      const value = this.getMetricValue(metrics, rule.metric);
+      
+      if (value > rule.threshold) {
+        await this.createAlert(rule, value);
+      } else {
+        await this.resolveAlert(rule.id);
+      }
+    }
+  }
+
+  private async createAlert(rule: AlertRule, value: number): Promise<void> {
+    const existingAlert = this.activeAlerts.find(alert => alert.ruleId === rule.id);
+    
+    if (!existingAlert) {
+      const alert: Alert = {
+        id: generateUniqueId(),
+        ruleId: rule.id,
+        metric: rule.metric,
+        value,
+        threshold: rule.threshold,
+        severity: rule.severity,
+        timestamp: Date.now(),
+        resolved: false
+      };
+
+      this.activeAlerts.push(alert);
+      await this.notificationManager.sendAlert(alert, rule.notificationChannels);
+    }
+  }
+
+  private async resolveAlert(ruleId: string): Promise<void> {
+    const alert = this.activeAlerts.find(a => a.ruleId === ruleId && !a.resolved);
+    
+    if (alert) {
+      alert.resolved = true;
+      await this.notificationManager.sendResolution(alert);
+      this.activeAlerts = this.activeAlerts.filter(a => a.id !== alert.id);
+    }
+  }
+
+  private getMetricValue(metrics: MonitoringMetrics, metricName: string): number {
+    switch (metricName) {
+      case 'latency':
+        return metrics.averageLatency;
+      case 'error_rate':
+        return metrics.errorRate;
+      case 'request_rate':
+        return metrics.requestRate;
+      default:
+        throw new Error(`Unknown metric: ${metricName}`);
+    }
+  }
+}
+```
+
+## Integration with the Monitor Class
+
+Let's update our main Monitor class to use these new features:
+
+```typescript
+export class Monitor {
+  private latencyTracker: LatencyTracker;
+  private errorMonitor: ErrorMonitor;
+  private alertManager: AlertManager;
+
+  constructor(config: MonitorConfig) {
+    this.latencyTracker = new LatencyTracker();
+    this.errorMonitor = new ErrorMonitor();
+    this.alertManager = new AlertManager(config.notificationManager);
+  }
+
+  async recordRequest(req: Request, res: Response, duration: number): Promise<void> {
+    // Record latency
+    this.latencyTracker.addLatency(duration);
+
+    // Track errors if necessary
+    if (res.statusCode >= 400) {
+      const errorContext: ErrorContext = {
+        timestamp: Date.now(),
+        statusCode: res.statusCode,
+        endpoint: req.url,
+        method: req.method,
+        requestHeaders: req.headers as Record<string, string>,
+        requestBody: req.body,
+        userAgent: req.headers['user-agent'],
+        ipAddress: req.ip
+      };
+
+      this.errorMonitor.trackError(new Error(`HTTP ${res.statusCode}`), errorContext);
+    }
+
+    // Check alert rules
+    const metrics = await this.calculateMetrics();
+    await this.alertManager.checkMetrics(metrics);
+  }
+
+  private async calculateMetrics(): Promise<MonitoringMetrics> {
+    // Implementation of metric calculations
+    return {
+      averageLatency: this.latencyTracker.getPercentile(50),
+      errorRate: /* calculate error rate */,
+      requestRate: /* calculate request rate */
+    };
+  }
+}
+```
+
+# Series Conclusion
+
+Throughout this series, I've built a comprehensive API monitoring package that provides:
+
+1. Core monitoring functionality
+2. Framework-specific adapters
+3. Flexible storage options
+4. Dashboard visualization
+5. Advanced features including:
+   - Detailed latency tracking
+   - Error monitoring with context
+   - Real-time alerting
+
+## Further Learning Resources
+
+To deepen your understanding of API monitoring and the technologies used in this project, check out these resources:
+
+1. **TypeScript Documentation**
+   - [TypeScript Handbook](https://www.typescriptlang.org/docs/handbook/intro.html)
+   - [TypeScript Deep Dive](https://basarat.gitbook.io/typescript/)
+
+2. **API Monitoring Concepts**
+   - [API Monitoring Best Practices](https://www.pingdom.com/blog/api-monitoring-best-practices/)
+   - [RESTful API Design](https://restfulapi.net/)
+
+3. **Performance Monitoring**
+   - [Web Performance Monitoring](https://web.dev/metrics/)
+   - [Node.js Performance Monitoring](https://nodejs.org/en/docs/guides/simple-profiling)
+
+4. **Related Tools**
+   - [Express.js Documentation](https://expressjs.com/)
+   - [Nest.js Documentation](https://docs.nestjs.com/)
+   - [SQL Server Documentation](https://docs.microsoft.com/en-us/sql/)
+
+## Project Repository
+
+The complete source code for this project is available on GitHub:
+[API Monitor Package Repository](https://github.com/ladaposamuel/mangologs)
+
+## Contributing
+
+contributions are welcome! Please feel free to submit issues and pull requests to help improve this package.
+
+## License
+
+This project is licensed under the MIT License - see the LICENSE file in the repository for details.
+
+---
+
+Thank you for following along with this series! I hope this package helps you better monitor and understand your API's performance and behavior.

@@ -5,20 +5,20 @@ summary: 'Learn how to create a versatile API monitoring package using TypeScrip
 draft: false
 ---
 
-# Building a Flexible API Monitoring Package with TypeScript
+
+## Series Overview
+
+1. [Introduction and Project Setup](/blog/building-a-flexible-api-monitoring-tool-1) 📍
+2. [Core Monitoring Functionality](/blog/building-a-flexible-api-monitoring-package-with-typescript-part-2)
+3. [Framework Adapters: Express, Nest.js, and Node.js](/blog/building-a-flexible-api-monitoring-package-with-typescript-part-3)
+4. [Storage Providers: In-Memory and MSSQL](/blog/building-a-flexible-api-monitoring-package-with-typescript-part-4)
+5. [Dashboard Service for Data Aggregation](/blog/building-a-flexible-api-monitoring-package-with-typescript-part-5)
+6. [Advanced Features: Latency Tracking and Error Monitoring](/blog/building-a-flexible-api-monitoring-package-with-typescript-part-6)
+
 
 In today's API-driven world, monitoring the performance, usage, and health of your APIs is crucial. Whether you're running a small startup or managing enterprise-level systems, having insight into your API's behavior can make the difference between a smooth operation and a critical failure.
 
 In this series, we'll walk through the process of building a flexible, TypeScript-based API monitoring package that can be easily integrated with Express, Nest.js, or vanilla Node.js applications. By the end of this series, you'll have a powerful tool to track API usage, monitor performance, and gain valuable insights into your application's behavior.
-
-## Series Overview
-
-1. Introduction and Project Setup (this article)
-2. Core Monitoring Functionality
-3. Framework Adapters: Express, Nest.js, and Node.js
-4. Storage Providers: In-Memory and MSSQL
-5. Dashboard Service for Data Aggregation
-6. Advanced Features: Latency Tracking and Error Monitoring
 
 ## Getting Started
 
@@ -143,8 +143,303 @@ With our `package.json` in place, let's install the dependencies:
 npm install
 ```
 
-## Next Steps
+## Core Monitoring Functionality
 
-With our project structure set up and dependencies installed, we're ready to start building our API monitoring package. In the next article, we'll dive into implementing the core monitoring functionality, including request interception and data collection.
+Now that we have our project structure set up, let's dive into implementing the core monitoring functionality. We'll start by creating the central `Monitor` class, which will be responsible for intercepting requests, collecting data, and managing the overall monitoring process.
 
-Stay tuned for Part 2 of our series, where we'll explore how to create the central `Monitor` class that will form the backbone of our API monitoring system.
+### The Monitor Class
+
+Let's begin by creating the `Monitor` class in the `src/core/monitor.ts` file. This class will be the heart of our API monitoring system.
+
+```typescript
+import { StorageProvider } from '../storage/interfaces/storage-provider.interface';
+
+import { ConfigProvider, MonitorConfig } from './interfaces/config.interface';
+import { Logger, LoggerProvider, LogLevel } from './interfaces/logger.interface';
+import { RequestStats } from './interfaces/request-stats.interface';
+
+export interface RequestData {
+  method: string;
+  url: string;
+  headers: Record<string, string>;
+  body?: unknown;
+  query?: Record<string, string>;
+}
+
+export interface ResponseData {
+  statusCode: number;
+  headers: Record<string, string>;
+  body?: unknown;
+}
+
+export interface MonitoredRequest {
+  id: string;
+  request: RequestData;
+  response: ResponseData;
+  startTime: number;
+  endTime: number;
+  latency: number;
+  serviceName: string;
+}
+
+export class Monitor {
+  private logger: Logger;
+  private config: MonitorConfig;
+  private storageProvider: StorageProvider;
+
+  constructor(
+    configProvider: ConfigProvider,
+    loggerProvider: LoggerProvider,
+    storageProvider: StorageProvider,
+  ) {
+    this.config = configProvider.getConfig();
+    this.logger = loggerProvider.getLogger('APIMonitor');
+    this.storageProvider = storageProvider;
+
+    this.logger.setLogLevel(this.config.logLevel as LogLevel);
+    this.logger.info('API Monitor initialized', undefined, { config: this.config });
+  }
+
+  private shouldSampleRequest(): boolean {
+    return Math.random() < this.config.sampleRate;
+  }
+
+  private shouldIgnoreRequest(url: string): boolean {
+    return this.config.ignorePaths.some((path) => url.startsWith(path));
+  }
+
+  private generateRequestId(): string {
+    return (
+      Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15)
+    );
+  }
+
+  async logRequest(
+    req: RequestData,
+    res: ResponseData,
+    startTime: number,
+    endTime: number,
+  ): Promise<void> {
+    if (!this.config.enabled) {
+      return;
+    }
+    if (this.shouldIgnoreRequest(req.url)) {
+      return;
+    }
+    if (!this.shouldSampleRequest()) {
+      return;
+    }
+
+    const latency = endTime - startTime;
+    const requestId = this.generateRequestId();
+
+    const monitoredRequest: MonitoredRequest = {
+      id: requestId,
+      request: req,
+      response: res,
+      startTime,
+      endTime,
+      latency,
+      serviceName: this.config.serviceName,
+    };
+
+    try {
+      await this.storageProvider.store(monitoredRequest);
+      this.logger.info(`Logged request to ${req.url}`, undefined, {
+        requestId,
+        method: req.method,
+        statusCode: res.statusCode,
+        latency,
+      });
+
+      if (latency > this.config.slowRequestThreshold) {
+        this.logger.warn(`Slow request detected`, undefined, {
+          requestId,
+          method: req.method,
+          url: req.url,
+          latency,
+        });
+        if (this.config.alertsEnabled && this.config.alertWebhook) {
+          // TODO: Implement alert mechanism
+          this.sendAlert(monitoredRequest);
+        }
+      }
+    } catch (error) {
+      this.logger.error('Failed to store monitored request', undefined, { error, requestId });
+    }
+  }
+
+  async getRequestStats(startDate: Date, endDate: Date): Promise<RequestStats> {
+    this.logger.debug('Fetching request stats', 'Monitor', { startDate, endDate });
+    const stats = await this.storageProvider.getStats(startDate, endDate);
+    this.logger.debug('Retrieved request stats', 'Monitor', { stats });
+    return stats;
+  }
+  private sendAlert(request: MonitoredRequest): void {
+    // TODO: Implement alert sending mechanism
+    this.logger.info('Sending alert for slow request', undefined, { requestId: request.id });
+  }
+}
+```
+
+
+This structure sets up our Monitor class with methods to log requests, get request statistics, and send alerts for slow requests. The class now uses dependency injection for configuration, logging, and storage, making it more flexible and testable.
+
+### The Logger Class
+
+To handle logging within our monitoring system, we'll implement a simple Logger class. 
+This will allow us to control the verbosity of our logs and provide consistent logging across the package.
+
+```typescript
+
+import { LoggerProvider, Logger, LogLevel, LogEntry } from './interfaces/logger.interface';
+
+export { LogLevel, LogEntry };
+
+type Metadata = Record<string, unknown>;
+
+export class DefaultLogger implements Logger {
+  private logLevel: LogLevel;
+  private context?: string;
+
+  constructor(context?: string, logLevel: LogLevel = LogLevel.INFO) {
+    this.context = context;
+    this.logLevel = logLevel;
+  }
+
+  private shouldLog(level: LogLevel): boolean {
+    return Object.values(LogLevel).indexOf(level) >= Object.values(LogLevel).indexOf(this.logLevel);
+  }
+
+  private createLogEntry(
+    level: LogLevel,
+    message: string,
+    context?: string,
+    metadata?: Metadata,
+  ): LogEntry {
+    return {
+      level,
+      message,
+      timestamp: new Date(),
+      context: context || this.context,
+      metadata,
+    };
+  }
+
+  private logMessage(entry: LogEntry): void {
+    console.log(JSON.stringify(entry));
+  }
+
+  debug(message: string, context?: string, metadata?: Metadata): void {
+    if (this.shouldLog(LogLevel.DEBUG)) {
+      this.logMessage(this.createLogEntry(LogLevel.DEBUG, message, context, metadata));
+    }
+  }
+
+  info(message: string, context?: string, metadata?: Metadata): void {
+    if (this.shouldLog(LogLevel.INFO)) {
+      this.logMessage(this.createLogEntry(LogLevel.INFO, message, context, metadata));
+    }
+  }
+
+  warn(message: string, context?: string, metadata?: Metadata): void {
+    if (this.shouldLog(LogLevel.WARN)) {
+      this.logMessage(this.createLogEntry(LogLevel.WARN, message, context, metadata));
+    }
+  }
+
+  error(message: string, context?: string, metadata?: Metadata): void {
+    if (this.shouldLog(LogLevel.ERROR)) {
+      this.logMessage(this.createLogEntry(LogLevel.ERROR, message, context, metadata));
+    }
+  }
+
+  log(level: LogLevel, message: string, context?: string, metadata?: Metadata): void {
+    if (this.shouldLog(level)) {
+      this.logMessage(this.createLogEntry(level, message, context, metadata));
+    }
+  }
+
+  setLogLevel(level: LogLevel): void {
+    this.logLevel = level;
+  }
+
+  getLogLevel(): LogLevel {
+    return this.logLevel;
+  }
+}
+
+export class DefaultLoggerProvider implements LoggerProvider {
+  getLogger(context?: string): Logger {
+    return new DefaultLogger(context);
+  }
+}
+```
+
+
+This Logger class provides different log levels and methods to log messages at each level. The logging is controlled by the `logLevel` property, which determines which messages are actually output.
+
+### Configuration Interface
+
+To ensure type safety and provide a clear structure for our monitor's configuration, let's define the necessary interfaces:
+
+```typescript
+import { LogLevel } from './logger.interface';
+
+export interface MonitorConfig {
+  enabled: boolean;
+  logLevel: LogLevel;
+  serviceName: string;
+  sampleRate: number;
+  ignorePaths: string[];
+  slowRequestThreshold: number;
+  alertsEnabled: boolean;
+  alertWebhook?: string;
+  // Add more configuration options as needed
+}
+
+export interface ConfigProvider {
+  getConfig(): MonitorConfig;
+}
+```
+
+This interface will help us maintain a consistent configuration structure throughout our package.
+Putting It All Together
+Now that we have our basic Monitor and Logger classes, as well as our Config interface, we can start to see how our API monitoring package will come together. 
+Here's an example of how we might use these components:
+
+```javascript
+import { Monitor } from './core/monitor';
+import { Config } from './core/interfaces/config.interface';
+import { LogLevel } from './core/logger';
+
+const config: Config = {
+  logLevel: LogLevel.DEBUG,
+  // Add more configuration options as needed
+};
+
+const monitor = new Monitor(config);
+monitor.start();
+
+// Later in your application...
+monitor.stop();
+```
+
+This example shows how we can create and start a Monitor instance with a custom configuration.
+
+### Next Steps
+
+With our core monitoring functionality in place, we're ready to move on to the next phase of our API monitoring package. In the upcoming articles, we'll cover:
+1. Implementing framework-specific adapters for Express, Nest.js, and vanilla Node.js
+Creating storage providers for persisting monitoring data
+3. Developing a dashboard service for data aggregation and visualization
+4. Adding advanced features like latency tracking and error monitoring
+
+Stay tuned for the next part of our series, where we'll dive into creating framework adapters to make our monitoring package work seamlessly with different Node.js frameworks.
+This continuation builds upon the project structure you've set up and aligns with the core files (monitor.ts and logger.ts) found in the mangologs repository. The article provides a solid foundation for the core monitoring functionality while setting the stage for future enhancements and integrations.
+
+
+Click here to view the part 2 of this series.
+🔥🔥
+
+[Building a Flexible API Monitoring Package with TypeScript part 2](https://electrode.dev/blog/building-a-flexible-api-monitoring-package-with-typescript-part-2)
