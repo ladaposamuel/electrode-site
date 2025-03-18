@@ -3,12 +3,36 @@ import { ReadingData } from "@/types/reading";
 export const readingData: ReadingData = {
   reading: [
     {
-      title: "Example Article",
-      url: "https://example.com/article",
-      type: "article",
-      author: "John Doe",
+      title: "Awesome Lists",
+      url: "https://github.com/sindresorhus/awesome",
+      type: "resource",
+      author: "Sindre Sorhus",
       date: "2025-03-18",
-      notes: "Interesting take on modern web development",
+      notes:
+        "A curated list of awesome lists about various development topics and technologies",
+    },
+    {
+      title: "RandomKeygen - The Secure Password & Keygen Generator",
+      url: "https://randomkeygen.com/",
+      type: "tool",
+      date: "2025-03-18",
+      notes: "Online tool for generating secure passwords and keys",
+    },
+    {
+      title: "DNS Lookup Tool",
+      url: "https://dns-lookup.com/",
+      type: "tool",
+      date: "2025-03-18",
+      notes:
+        "Find IP addresses and perform deep DNS lookups with detailed record information (A, MX, NS, SOA, TXT)",
+    },
+    {
+      title: "DNS Leak Test - Understanding and Preventing DNS Leaks",
+      url: "https://www.dnsleaktest.com/",
+      type: "article",
+      date: "2025-03-18",
+      notes:
+        "Comprehensive guide on DNS leaks, their implications for privacy, and how to prevent them",
     },
   ],
   watching: [

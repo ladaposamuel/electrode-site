@@ -69,11 +69,11 @@ export default async function HomePage() {
                 <div className="flex items-center justify-center w-full">
                   <Image
                     alt="wakatime stats"
-                    src="https://wakatime.com/badge/user/c81ce760-211d-45d2-8bcd-856d260c5c8c.svg"
-                    width={180}
-                    height={28}
+                    src="https://wakatime.com/badge/user/c81ce760-211d-45d2-8bcd-856d260c5c8c.svg?style=flat"
+                    width={200}
+                    height={20}
                     priority
-                    className="scale-110"
+                    className="dark:invert"
                   />
                 </div>
               }

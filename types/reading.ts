@@ -1,7 +1,7 @@
 export type ContentItem = {
   title: string;
   url: string;
-  type: 'article' | 'tweet' | 'video';
+  type: 'article' | 'tweet' | 'video' | 'resource' | 'tool';
   author?: string;
   date: string;
   notes?: string;
