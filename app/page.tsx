@@ -60,7 +60,7 @@ export default async function HomePage() {
       </section>
 
       <section className="space-y-4">
-        <div className="grid gap-3 grid-cols-1 sm:grid-cols-2 lg:grid-cols-4">
+        <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-4">
           <div className="lg:col-span-2">
             <StatCard
               icon="👨🏾‍💻"
@@ -95,7 +95,7 @@ export default async function HomePage() {
         </div>
       </section>
 
-      <div className="grid gap-6 grid-cols-1 sm:grid-cols-2">
+      <div className="grid gap-8 grid-cols-1 sm:grid-cols-2">
         <ContentPreview
           title="currently reading"
           items={readingData.reading}

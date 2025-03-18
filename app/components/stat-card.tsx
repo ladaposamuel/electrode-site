@@ -14,7 +14,7 @@ export function StatCard({ icon, label, value, href }: StatCardProps) {
   return (
     <Wrapper
       {...wrapperProps}
-      className="group flex items-center gap-2 rounded-lg border border-neutral-200 dark:border-neutral-800 px-3 py-2 transition-all hover:bg-neutral-50 dark:hover:bg-neutral-800/50"
+      className="group flex items-center gap-2 rounded-lg border-[1.5px] border-neutral-200 dark:border-neutral-700 bg-white dark:bg-neutral-900 px-3 py-2 transition-all hover:border-neutral-300 dark:hover:border-neutral-600 hover:shadow-sm dark:hover:shadow-neutral-800/50"
     >
       <span className="text-lg">{icon}</span>
       <div className="flex min-w-0 flex-col">
