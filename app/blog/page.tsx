@@ -193,7 +193,7 @@ export default async function BlogPage({
                           </a>
                         ) : (
                           <Link
-                            href={post.slug}
+                            href={`/blog/${post.slug}`}
                             className="text-base font-medium text-neutral-900 dark:text-neutral-100 tracking-tight hover:text-neutral-600 dark:hover:text-neutral-400"
                           >
                             {post.title}
