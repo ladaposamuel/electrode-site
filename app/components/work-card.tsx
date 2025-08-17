@@ -1,11 +1,11 @@
-import { ExternalLink } from 'lucide-react';
-import Link from 'next/link';
+import { ExternalLink } from "lucide-react";
+import Link from "next/link";
 
 interface WorkCardProps {
   title: string;
   description?: string;
   href: string;
-  status?: 'active' | 'completed' | 'wip';
+  status?: "active" | "completed" | "wip" | "abandoned";
   period?: string;
   position?: string;
   tags?: string[];
@@ -15,21 +15,26 @@ export function WorkCard({
   title,
   description,
   href,
-  status = 'completed',
+  status = "completed",
   period,
   position,
   tags,
 }: WorkCardProps) {
   const statusColors = {
-    active: 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400',
-    completed: 'bg-neutral-100 text-neutral-600 dark:bg-neutral-800 dark:text-neutral-400',
-    wip: 'bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-400',
+    active:
+      "bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400",
+    completed:
+      "bg-neutral-100 text-neutral-600 dark:bg-neutral-800 dark:text-neutral-400",
+    wip: "bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-400",
+    abandoned:
+      "bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400",
   };
 
   const statusLabels = {
-    active: 'Active',
-    completed: 'Completed',
-    wip: 'In Progress',
+    active: "Active",
+    completed: "Completed",
+    wip: "In Progress",
+    abandoned: "Abandoned",
   };
 
   return (
@@ -55,7 +60,7 @@ export function WorkCard({
           {(position || period) && (
             <p className="mt-1 text-sm text-neutral-500 dark:text-neutral-500">
               {position && <span className="font-medium">{position}</span>}
-              {position && period && ' • '}
+              {position && period && " • "}
               {period}
             </p>
           )}

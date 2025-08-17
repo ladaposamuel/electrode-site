@@ -1,3 +1,3 @@
 export const getResumeLink = (): string => {
-    return `https://bit.ly/4cSobIZ`;
+    return `https://drive.google.com/file/d/1hAAcMtSN3bqXdhc-pqgT1r2MKVm81ZUt/view?usp=sharing`;
   };

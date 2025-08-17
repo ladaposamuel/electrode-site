@@ -8,6 +8,27 @@ export default function Works() {
 
   const projects = [
     {
+      title: "BuzzHive",
+      description:
+        "A tool for online creators to manage their communities and share resources",
+      href: "https://bz-web.mybuzzhive.com/",
+      status: "active" as const,
+      tags: [
+        "Next.js",
+        "Nest.js",
+        "TypeScript",
+        "Tailwind",
+        "PostgreSQL",
+        "Docker",
+        "RabbitMQ",
+        "Redis",
+        "GitHub Actions",
+        "AWS",
+        "DigitalOcean",
+        "GitLab CI/CD",
+      ],
+    },
+    {
       title: "Venhoot",
       description: "Online review and rating system for Instagram businesses",
       href: "https://venhoot.com",
@@ -19,7 +40,7 @@ export default function Works() {
       description:
         "A mobile application that allows users to schedule money transfers and bills payments.",
       href: "https://mangomoney.app",
-      status: "wip" as const,
+      status: "abandoned" as const,
       tags: ["React Native", "Node.js", "MongoDB"],
     },
     {

@@ -45,8 +45,13 @@ const techStack: TechItem[] = [
     category: 'backend',
   },
   {
-    name: 'Express.js',
+    name: 'ExpressJS',
     icon: '/icons/express.svg',
+    category: 'backend',
+  },
+  {
+    name: 'NestJS',
+    icon: '/icons/nestjs.svg',
     category: 'backend',
   },
   // Database
