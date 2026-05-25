@@ -1,5 +1,4 @@
 import { defineDocumentType, makeSource } from 'contentlayer/source-files';
-import remarkGfm from 'remark-gfm';
 import rehypePrettyCode from 'rehype-pretty-code';
 import rehypeSlug from 'rehype-slug';
 import rehypeAutolinkHeadings from 'rehype-autolink-headings';
@@ -75,7 +74,7 @@ export default makeSource({
   contentDirPath: 'content',
   documentTypes: [Blog],
   mdx: {
-    remarkPlugins: [remarkGfm],
+    remarkPlugins: [],
     rehypePlugins: [
       rehypeSlug,
       [

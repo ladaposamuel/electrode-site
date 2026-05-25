@@ -1,11 +1,8 @@
 const { get } = require("@vercel/edge-config");
-const { withContentlayer } = require("next-contentlayer");
 
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  experimental: {
-    serverActions: true,
-  },
+  outputFileTracingRoot: __dirname,
   images: {
     dangerouslyAllowSVG: true,
     formats: ["image/avif", "image/webp"],
@@ -62,7 +59,7 @@ const ContentSecurityPolicy = `
     media-src 'none';
     connect-src *;
     font-src 'self';
-    frame-src 'self' https://open.spotify.com;
+    frame-src 'self' https://open.spotify.com https://www.youtube-nocookie.com;
 `;
 const securityHeaders = [
   // https://developer.mozilla.org/en-US/docs/Web/HTTP/CSP
@@ -102,4 +99,4 @@ const securityHeaders = [
   },
 ];
 
-module.exports = withContentlayer(nextConfig);
+module.exports = nextConfig;

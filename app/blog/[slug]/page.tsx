@@ -6,12 +6,15 @@ import { getTweets } from 'lib/twitter';
 import Balancer from 'react-wrap-balancer';
 import ViewCounter from '../view-counter';
 import { getViewsCount } from 'lib/metrics';
-import { ArrowLeft } from 'lucide-react';
+import { ArrowLeft, Calendar, Eye } from 'lucide-react';
 
 export async function generateMetadata({
   params,
+}: {
+  params: Promise<{ slug: string }>;
 }): Promise<Metadata | undefined> {
-  const post = allBlogs.find((post) => post.slug === params.slug);
+  const { slug: paramSlug } = await params;
+  const post = allBlogs.find((post) => post.slug === paramSlug);
   if (!post) {
     return;
   }
@@ -65,8 +68,13 @@ const formatDate = (date: string | Date): string => {
   }
 };
 
-export default async function Blog({ params }) {
-  const post = allBlogs.find((post) => post.slug === params.slug);
+export default async function Blog({
+  params,
+}: {
+  params: Promise<{ slug: string }>;
+}) {
+  const { slug } = await params;
+  const post = allBlogs.find((post) => post.slug === slug);
 
   if (!post) {
     notFound();
@@ -102,27 +110,32 @@ export default async function Blog({ params }) {
           </p>
         )}
 
-        <div className="flex items-center gap-4 text-sm text-neutral-600 dark:text-neutral-400">
-          <time dateTime={post.publishedAt} className="font-mono">
-            {formatDate(post.publishedAt)}
-          </time>
-          <span className="text-neutral-300 dark:text-neutral-700">•</span>
-          <ViewCounter slug={post.slug} allViews={allViews} trackView />
+        {/* Framed metadata strip: date and views on the left, non-wrapping tag pills on the right. */}
+        <div className="flex flex-wrap items-center justify-between gap-x-6 gap-y-3 border-y border-neutral-200 dark:border-neutral-800 py-3 text-sm text-neutral-600 dark:text-neutral-400">
+          <div className="flex items-center gap-5">
+            <span className="inline-flex items-center gap-1.5">
+              <Calendar className="w-3.5 h-3.5" aria-hidden />
+              <time dateTime={post.publishedAt}>{formatDate(post.publishedAt)}</time>
+            </span>
+            <div className="inline-flex items-center gap-1.5">
+              <Eye className="w-3.5 h-3.5" aria-hidden />
+              <ViewCounter slug={post.slug} allViews={allViews} trackView />
+            </div>
+          </div>
+
           {post.tags && (
-            <>
-              <span className="text-neutral-300 dark:text-neutral-700">•</span>
-              <div className="flex gap-2">
-                {post.tags.split(',').map((tag) => (
-                  <a
-                    key={tag.trim()}
-                    href={`/blog?tag=${tag.trim()}`}
-                    className="text-xs px-2 py-0.5 rounded-full bg-neutral-100 text-neutral-600 hover:bg-neutral-200 dark:bg-neutral-800 dark:text-neutral-400 dark:hover:bg-neutral-700 transition-colors"
-                  >
-                    {tag.trim()}
-                  </a>
-                ))}
-              </div>
-            </>
+            <div className="flex flex-wrap items-center gap-1.5">
+              {post.tags.split(',').map((tag) => (
+                <a
+                  key={tag.trim()}
+                  href={`/blog?tag=${tag.trim()}`}
+                  className="whitespace-nowrap text-xs px-2.5 py-1 rounded-full bg-neutral-100 text-neutral-600 hover:bg-neutral-200 hover:text-neutral-900 dark:bg-neutral-800/60 dark:text-neutral-400 dark:hover:bg-neutral-700 dark:hover:text-neutral-100 transition-colors"
+                >
+                  <span className="text-neutral-400 dark:text-neutral-600">#</span>
+                  {tag.trim()}
+                </a>
+              ))}
+            </div>
           )}
         </div>
       </header>

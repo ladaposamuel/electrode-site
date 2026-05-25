@@ -1,6 +1,5 @@
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
+@import "tailwindcss";
+@config "../tailwind.config.js";
 
 ::selection {
   background-color: #47a3f3;
@@ -118,17 +117,135 @@ table {
   color: gray;
 }
 [data-rehype-pretty-code-fragment] .line--highlighted {
-  @apply bg-slate-500 bg-opacity-10;
+  @apply bg-slate-500/10;
 }
 [data-rehype-pretty-code-fragment] .line-highlighted span {
   @apply relative;
 }
 [data-rehype-pretty-code-fragment] .word--highlighted {
-  @apply rounded-md bg-slate-500 bg-opacity-10 p-1;
+  @apply rounded-md bg-slate-500/10 p-1;
 }
 [data-rehype-pretty-code-title] {
   @apply px-4 py-3 font-mono text-xs font-medium border rounded-t-lg text-neutral-200 border-[#333333] bg-[#1c1c1c];
 }
 [data-rehype-pretty-code-title] + pre {
   @apply mt-0 rounded-t-none border-t-0;
+}
+
+/* Readable article body: Geist Sans for prose, JetBrains Mono retained for
+   headings and code so the terminal identity stays intact. */
+.prose {
+  font-family: var(--font-geist-sans), ui-sans-serif, system-ui, -apple-system,
+    "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  font-size: 1.125rem;
+  line-height: 1.75;
+}
+.prose :is(h1, h2, h3, h4, h5, h6) {
+  font-family: var(--font-jetbrains-mono), ui-monospace, monospace;
+}
+.prose :is(code, kbd, samp),
+.prose pre,
+[data-rehype-pretty-code-figure] :is(pre, code, [data-line]) {
+  font-family: var(--font-jetbrains-mono), ui-monospace, monospace;
+}
+
+/* IDE-style code blocks: window chrome, language label, and a line-number
+   gutter layered on top of the one-dark-pro highlighting. */
+[data-rehype-pretty-code-figure] {
+  position: relative;
+  margin: 1.75em 0;
+  border-radius: 0.75rem;
+  border: 1px solid #181a1f;
+  background: #21252b;
+  overflow: hidden;
+  box-shadow: 0 12px 32px -14px rgba(0, 0, 0, 0.65);
+}
+[data-rehype-pretty-code-figure]::before {
+  content: "";
+  position: absolute;
+  top: 1rem;
+  left: 1rem;
+  width: 0.7rem;
+  height: 0.7rem;
+  border-radius: 9999px;
+  background: #ff5f56;
+  box-shadow: 1.2rem 0 0 #ffbd2e, 2.4rem 0 0 #27c93f;
+  z-index: 2;
+}
+[data-rehype-pretty-code-figure] pre {
+  position: relative;
+  margin: 2.5rem 0 0;
+  padding: 1rem 1.25rem 1.25rem;
+  border: 0;
+  border-top: 1px solid rgba(0, 0, 0, 0.35);
+  border-radius: 0;
+  overflow-x: auto;
+  font-size: 0.875rem;
+  line-height: 1.6;
+}
+[data-rehype-pretty-code-figure] pre[data-language]::before {
+  content: attr(data-language);
+  position: absolute;
+  top: -1.85rem;
+  right: 1rem;
+  font-size: 0.7rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #7a818e;
+}
+[data-rehype-pretty-code-figure] code {
+  display: grid;
+  counter-reset: line;
+  background: transparent;
+}
+[data-rehype-pretty-code-figure] code > [data-line] {
+  padding: 0 0.25rem;
+}
+[data-rehype-pretty-code-figure] code > [data-line]::before {
+  counter-increment: line;
+  content: counter(line);
+  display: inline-block;
+  width: 1.25rem;
+  margin-right: 1.25rem;
+  text-align: right;
+  color: rgba(171, 178, 191, 0.3);
+}
+
+/* Animated "live activity" equalizer used on the homepage status board. */
+@keyframes eq {
+  0%,
+  100% {
+    transform: scaleY(0.3);
+  }
+  50% {
+    transform: scaleY(1);
+  }
+}
+.eq {
+  display: inline-flex;
+  align-items: flex-end;
+  gap: 2px;
+  height: 12px;
+}
+.eq > span {
+  width: 2px;
+  height: 100%;
+  background: #47a3f3;
+  transform-origin: bottom;
+  animation: eq 1s ease-in-out infinite;
+}
+.eq > span:nth-child(2) {
+  animation-delay: 0.2s;
+}
+.eq > span:nth-child(3) {
+  animation-delay: 0.4s;
+}
+.eq > span:nth-child(4) {
+  animation-delay: 0.15s;
+}
+@media (prefers-reduced-motion: reduce) {
+  .eq > span {
+    animation: none;
+    transform: scaleY(0.6);
+  }
 }

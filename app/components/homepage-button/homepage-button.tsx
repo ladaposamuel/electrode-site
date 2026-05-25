@@ -9,7 +9,7 @@ export const HomepageButton = ({
 }) => {
   return (
     <a
-      className={styles.button}
+      className={`${styles.button} flex items-center hover:text-neutral-700 dark:hover:text-neutral-200 transition-all`}
       rel="noopener noreferrer"
       target="_blank"
       href={href}

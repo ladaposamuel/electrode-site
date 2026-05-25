@@ -106,6 +106,22 @@ export default function AboutPage() {
         </div>
       </section>
 
+      <section className="mt-10">
+        <p className="mb-3 text-sm text-neutral-600 dark:text-neutral-400">
+          Since you got here :), here's one of my favourite playlists:
+        </p>
+        <iframe
+          title="Samuel's favourite playlist on Spotify"
+          style={{ borderRadius: "12px" }}
+          src="https://open.spotify.com/embed/playlist/60zXXNjqoiJsYpgk9VquzE?utm_source=generator"
+          width="100%"
+          height="352"
+          allowFullScreen
+          allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture"
+          loading="lazy"
+        />
+      </section>
+
       <section>
         <div className="flex flex-wrap gap-2">
           <HomepageButton href={getResumeLink()}>

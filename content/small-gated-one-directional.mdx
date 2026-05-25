@@ -1,0 +1,135 @@
+---
+title: 'Small, Gated, One-Directional'
+publishedAt: '2026-05-25'
+summary: 'What I learned untangling a large NestJS backend: circular dependencies, god-files, and a test suite that was quietly lying to me — and why small, gated, one-directional changes beat the rewrite I was tempted to do.'
+image: '/og?title=Small%2C%20Gated%2C%20One-Directional'
+draft: false
+tags: reflection, refactoring, nestjs, architecture, testing
+---
+
+Every growing codebase reaches a point where you open a file, scroll, scroll some more, and quietly think: *we should just rewrite this.*
+
+I hit that point recently with a NestJS backend I work on. It wasn't bad code, exactly — it was successful code. It had shipped features, survived deadlines, and grown a few thousand commits of momentum. But that momentum had left marks: modules that depended on each other in circles, a couple of service files that had quietly crossed two thousand lines, and a test suite nobody fully trusted.
+
+The rewrite instinct is seductive because it promises a clean slate. But a rewrite throws away the one thing the messy code actually has: every bug it has already learned not to reproduce. So I went the other way — lots of small, boring, reversible changes, each one verified before the next. Here's what that taught me.
+
+## Circular dependencies are a smell, not a fire
+
+The first thing I went after was circular dependencies between modules. In NestJS the usual band-aid is `forwardRef()` — you wrap a module reference in a lazy callback so two modules can import each other without the framework choking at startup.
+
+It works. That's the problem. `forwardRef` doesn't *fix* a circular dependency; it hides it well enough that you stop seeing it. I had inherited a pile of them.
+
+```typescript
+// The smell: two modules importing each other, papered over so it boots.
+@Module({
+  imports: [forwardRef(() => ProfileModule)],
+})
+export class UserContextModule {}
+```
+
+Before touching anything, I made myself answer an honest question: **what do these cycles actually cost?** Because if the answer was "nothing," the right move was to leave them alone.
+
+The answer turned out to be calming and clarifying at the same time:
+
+> Circular dependencies are not a performance problem. The framework wires the dependency graph once at startup; a `forwardRef` adds zero per-request cost. The app runs exactly as fast either way.
+
+What they *do* cost is comprehension and flexibility. A new engineer opening a module can't tell which way the arrows point, so they can't predict what depends on what. And a tangle of cycles means you can never lift a subsystem out cleanly, because everything is quietly holding hands with everything else.
+
+So the cost wasn't speed — it was the ability of a person (or a future me) to reason about the system. That reframing mattered, because it told me this was a *readability* project, not an emergency.
+
+## One direction is the whole trick
+
+The fix for a cycle is almost embarrassingly simple to state: make the dependency point one way.
+
+The hard part is deciding which way. The principle I settled on: **lower-level, stable things should never reach up into higher-level, changeable things.** My AI/agent core was reaching up into feature modules to read data — exactly backwards. The core is the stable layer; the features change every week.
+
+Two patterns did almost all the work:
+
+- **A read-port for the wrong-direction reads.** Instead of the core importing a feature service to read some data, I defined a small interface — "give me this slice of state" — that the core owns, and let the feature provide the implementation. Now the core depends on an idea it defines, not on a module that depends on it. The arrow flips.
+- **An event for the wrong-direction callbacks.** One module needed to call another *back* after finishing its own work (payments telling applications "this is paid, go create the record"). That back-call was the entire reason for a cycle. Replacing it with a domain event — one side emits, the other listens — cut the dependency without changing what actually happens.
+
+For the read, the core owns the contract and the feature fills it in:
+
+```typescript
+// Declared in the core — it depends on this idea, not on the feature.
+export interface ProfileStateReadPort {
+  read(userId: string): Promise<ProfileState | null>;
+}
+// The feature provides the implementation; a global module binds the two.
+// The arrow now points feature → core, the way it should.
+```
+
+For the callback, the emitter stops importing the other module entirely:
+
+```typescript
+// Payments no longer knows the applications module exists. It just announces:
+this.events.emit(APPLICATION_PAYMENT_COMPLETED, { userId, opportunityId });
+
+// Applications listens, on its own side of the boundary:
+@OnEvent(APPLICATION_PAYMENT_COMPLETED)
+onPaid(e: ApplicationPaymentCompleted) {
+  return this.createApplicationAfterPayment(e.userId, e.opportunityId);
+}
+```
+
+Neither of these is clever. That's the point. The cleverness was in *not* reaching for `forwardRef` and instead asking "which of these two things is allowed to know about the other?"
+
+When I was done, the module graph had zero circular dependencies and zero `forwardRef`s left. The only cycles remaining were between database entities that reference each other — and those are idiomatic and harmless, so I left them and wrote down *why*, so the next person doesn't "fix" them.
+
+## God-files are a tax you pay on every read
+
+The next target was the big files. One service had grown past 2,400 lines; another past 1,600. Nothing was *wrong* with them. They just couldn't be held in a human head at once, which meant every change to them started with ten minutes of re-learning the file.
+
+My rule here was a phrase I kept repeating to myself:
+
+> Move, don't rewrite.
+
+I didn't reimagine these services. I looked for the parts that were genuinely separable — pure functions with no dependencies, or whole responsibilities that just happened to live in the same class — and I lifted them out, byte-for-byte, into focused files. The behavior couldn't drift because the code was identical; only its address changed.
+
+The interesting lesson was that **not all big files are big in the same way.** One service was full of pure, dependency-free logic — easy, low-risk extraction. Another was big because it conflated two real jobs (an interactive streaming loop and a batch "give me a structured answer" path) that merely shared some plumbing. That one needed a genuine split into two services, not just a tidy-up.
+
+Knowing which kind of big you're dealing with — before you start cutting — is most of the work.
+
+## The test suite was lying to me
+
+This was the humbling part.
+
+Partway through, I realized the team's de-facto safety check was "does it build?" — not "do the tests pass?" That's a tell. When people trust the compiler over the test suite, it's because the test suite has stopped being trustworthy.
+
+I ran the whole thing. Seven suites were broken. Most weren't even failing on logic — they failed to *compile*, because services had grown new constructor dependencies and nobody had updated the tests. They'd been red for who-knows-how-long, and because nobody ran them as a gate, nobody noticed.
+
+A green build had been hiding a red suite.
+
+And then it caught *me*. One of those suites was a small, source-level "contract" test that scanned a service for any public method that mutates state without invalidating a cache. Earlier in the cleanup I'd added a new read method — harmless, I thought — and that test went red. It was right. My new method didn't fit the invariant the test was guarding, and I'd never have noticed by hand. A good test had caught the author of the cleanup making a quiet mistake.
+
+```typescript
+// The whole test: grep the service source for public async methods,
+// and assert every one is either a known mutator or an allow-listed read.
+const publicAsync = [...source.matchAll(/\n  async (\w+)\s*\(/g)].map((m) => m[1]);
+const unaccounted = publicAsync.filter(
+  (name) => !MUTATING_METHODS.includes(name) && !READ_ONLY.includes(name),
+);
+expect(unaccounted).toEqual([]); // went red on a method I'd just added
+```
+
+The lesson landed hard:
+
+> A test suite you don't run is not a safety net. It's decoration. And the moment you make it green and *keep* it green, it starts catching things — including your own changes.
+
+Getting every suite back to green wasn't glamorous work. It was updating stale mocks and correcting assertions that described a system that no longer existed. But it changed the texture of everything after it: now I could make a change, run the tests, and *believe* the result.
+
+## Small, gated, one-directional
+
+If I had to compress the whole experience into three words, it would be the title of this post: small, gated, one-directional. The real fix for a messy codebase isn't a rewrite — it's a discipline. Every change I made followed the same loop: make it small, make it point one direction, and put a gate behind it — build, dependency check, tests, a cycle scan — that had to pass before the next change. Dozens of times. Boring on purpose.
+
+What surprised me is how much *confidence* that loop generates. A rewrite is one enormous bet you can't unwind. A hundred gated changes are a hundred tiny bets, each one reversible, each one verified. You're never more than one commit away from a known-good state. The messy codebase keeps working the entire time, in production, while it quietly gets better underneath the users' feet.
+
+A few things I'm taking with me:
+
+1. **Diagnose the cost before you fix the smell.** "This is ugly" is not a reason. "A new teammate can't reason about this" is.
+2. **Direction is a design decision.** Most "we need `forwardRef`" moments are really "we haven't decided which thing is allowed to know about the other."
+3. **Move before you rewrite.** Relocating code can't introduce behavior bugs. Reimagining it can.
+4. **A green build is not a green suite.** If the team trusts the compiler more than the tests, the tests are the thing to fix first.
+5. **Write down why you *didn't* change something.** The intentional non-fix (those idiomatic entity cycles) is as important to document as the fix.
+
+I never did the rewrite. The codebase that felt like it needed one now reads like something a new engineer could actually pick up — and it got there without a single dramatic day. Just a lot of small, gated, one-directional steps, and a test suite I can finally believe.

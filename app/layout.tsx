@@ -23,6 +23,35 @@ const jetbrainsMono = localFont({
   variable: "--font-jetbrains-mono",
 });
 
+// Readable sans typeface used for long-form article body text, keeping
+// JetBrains Mono for headings, navigation, metadata, and code.
+const geistSans = localFont({
+  src: [
+    {
+      path: "../public/fonts/geist/Geist-400.woff2",
+      weight: "400",
+      style: "normal",
+    },
+    {
+      path: "../public/fonts/geist/Geist-500.woff2",
+      weight: "500",
+      style: "normal",
+    },
+    {
+      path: "../public/fonts/geist/Geist-600.woff2",
+      weight: "600",
+      style: "normal",
+    },
+    {
+      path: "../public/fonts/geist/Geist-700.woff2",
+      weight: "700",
+      style: "normal",
+    },
+  ],
+  variable: "--font-geist-sans",
+  display: "swap",
+});
+
 // const kaisei = localFont({
 //   src: "../public/fonts/kaisei-tokumin-latin-700-normal.woff2",
 //   weight: "700",
@@ -76,7 +105,8 @@ export default function RootLayout({
       lang="en"
       className={clsx(
         "text-black bg-white dark:text-white dark:bg-[#111010]",
-        jetbrainsMono.variable
+        jetbrainsMono.variable,
+        geistSans.variable
       )}
     >
       <body className="antialiased max-w-4xl mb-40 flex flex-col md:flex-row mx-4 mt-8 md:mt-20 lg:mt-32 lg:mx-auto">

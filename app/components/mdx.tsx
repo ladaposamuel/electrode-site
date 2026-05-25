@@ -1,7 +1,7 @@
 import * as React from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
-import { useMDXComponent } from 'next-contentlayer/hooks';
+import { getMDXComponent } from 'mdx-bundler/client';
 import Tweet from './tweet';
 
 const CustomLink = (props) => {
@@ -89,12 +89,30 @@ function ConsCard({ title, cons }) {
   );
 }
 
+// Responsive 16:9 YouTube embed. Pass the video id (the v= parameter) and an optional title for accessibility.
+function YouTube({ id, title = 'YouTube video' }) {
+  return (
+    <div className="my-8 overflow-hidden rounded-lg">
+      <iframe
+        src={`https://www.youtube-nocookie.com/embed/${id}`}
+        title={title}
+        loading="lazy"
+        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+        allowFullScreen
+        className="w-full"
+        style={{ aspectRatio: '16 / 9', border: 0 }}
+      />
+    </div>
+  );
+}
+
 const components = {
   Image: RoundedImage,
   a: CustomLink,
   Callout,
   ProsCard,
   ConsCard,
+  YouTube,
 };
 
 interface MdxProps {
@@ -103,7 +121,7 @@ interface MdxProps {
 }
 
 export function Mdx({ code, tweets }: MdxProps) {
-  const Component = useMDXComponent(code);
+  const Component = getMDXComponent(code);
   const StaticTweet = ({ id }) => {
     const tweet = tweets.find((tweet) => tweet.id === id);
     return <Tweet {...tweet} />;

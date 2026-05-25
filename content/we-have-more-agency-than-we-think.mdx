@@ -1,0 +1,75 @@
+---
+title: 'We Have More Agency Than We Think'
+publishedAt: '2026-05-25'
+summary: "Notes on Adam Bender's keynote and what the 10x moment really asks of developers in the age of AI coding."
+draft: false
+tags: ai, software-engineering, developer-experience, opinion
+---
+
+I just finished watching a talk that I cannot stop thinking about.
+
+It is called [Software Engineering at the Tipping Point](https://www.youtube.com/watch?v=2n41YjR5QfU), a keynote from Google delivered by Adam Bender, one of their engineers. He opens with a joke about it being 3:00 PM on a Wednesday, which is exactly the kind of low stakes moment where you do not expect to have your whole mental model rearranged. And yet here I am, writing about it days later, because one line near the end refused to leave me alone:
+
+> You have more agency than you think.
+
+I want to talk about why that line landed, and what the rest of the talk did to the way I think about building software right now. Because if I am being honest, my job in 2026 does not look like what I imagined it would back in 2020. I suspect yours does not either.
+
+If you have not seen it, it is worth the time. Here is the full talk:
+
+<YouTube id="2n41YjR5QfU" title="Software Engineering at the Tipping Point (Google)" />
+
+## Everything is connected
+
+Bender spends the first stretch of the talk on an idea he calls software ecology, which he defines as the holistic study of the socio-technical ecosystems that produce software. That sounds academic until he makes it concrete. Your developer environment is an ecosystem. It is the tools and services you use, yes, but it is also the people with opinions, the business constraints, the culture, and the habits that have quietly hardened into rules over the years.
+
+The phrase he keeps returning to is simple: everything is connected. You cannot pull on one thread without the rest of the fabric moving. You cannot fix a single piece of your workflow in isolation and expect the whole system to behave.
+
+This part hit close to home, because I tend to build things on my own or in very small teams. When I started Venhoot, it was one person and an idea and a Laravel project. It felt like just me and the code. But even a setup that small is an ecosystem. The framework I picked, the way I test, the habits I lean on when I am tired at midnight, all of it shapes what I can ship and how fast I can ship it. Once you start seeing your work as a connected system instead of a pile of separate tasks, you cannot unsee it.
+
+## The 10x moment
+
+Then Bender asks the question that turns the talk from interesting to urgent. What happens if your developer ecosystem suddenly has to grow by 10 to 15 times in the next 18 months?
+
+Inside that question is the most important distinction in the whole talk. Generating code faster is not the same thing as engineering faster. At Google, he says, they describe engineering as programming integrated over time. AI is making the programming part go very, very fast. The trouble is that everything around the programming, the reviewing, the testing, the deciding, the maintaining, does not automatically speed up to match.
+
+He borrows a line from Jeff Atwood that I keep repeating to myself: software is a liability. So if AI gives us 10x more code, we do not just get 10x more capability. We also get 10x more liability. More to read, more to test, more to keep alive, more that can quietly break.
+
+He walks through what starts to crack under that pressure, and none of it is dramatic. It is the boring infrastructure of how we work. Code review turns into a bottleneck, because no human can meaningfully review ten times more changes a day. Test suites and compute balloon. Version control systems that were tuned for consistency, not speed, start to groan. And the most precious resource of all, human attention, gets stretched past the point where we can pay attention to everything demanding it.
+
+What got me was how far the ripples travel. Bender points out that once agents are loose in your systems, all of your internal APIs have effectively just become public. An agent will not negotiate with you. It finds an endpoint, it starts calling it, and if it can reach your data, it will. The hardening you used to reserve for the public internet is suddenly the bar for everything. That is what a connected system does under pressure. It finds every corner you were not looking at and asks, politely, whether you were paying attention.
+
+I have already felt the early, smaller version of this. When I was building [the API monitoring package](/blog/building-a-flexible-api-monitoring-tool-1) across that long series of posts, the slow part was never typing the code. The slow part was holding the whole design in my head, reviewing it honestly, and deciding what actually belonged. AI does not remove that work. It moves it downstream, and very often it makes more of it. The faster I generate, the more there is to understand.
+
+## AI is an amplifier, not an autopilot
+
+Here is the idea that reframed the entire talk for me. Bender cites research from the DORA team, and the finding is deceptively simple. AI acts as an amplifier. And amplification is a magnitude, not a direction.
+
+<Callout emoji="🔊">
+  Amplification is a magnitude, not a direction. AI gives you more of whatever you already have, good or bad.
+</Callout>
+
+The model does not care where the output goes. It will happily give you more of whatever you already have. More tests or more confusion. More documentation or more mess. More clarity or more chaos. The teams that win, according to the research, are the ones who already had good fundamentals, because they can point all that amplification in a useful direction.
+
+That is the opposite of the autopilot fantasy I think a lot of us secretly carry, the hope that AI will quietly clean up after us. It will not. It will turn up the volume on the engineer you already are. Which means your fundamentals matter more now, not less.
+
+This is exactly why I have never regretted the unglamorous habits. When I shipped [the Solana tip jar](/blog/building-a-solana-tip-jar-with-react-and-typescript), the fun part was the idea and the first working version. The part that made it something I would actually put in front of people was the boring discipline: handling the edge cases, writing the thing so a future me could read it, and not shipping until I trusted it. Those habits used to feel like overhead. In a world where I can generate ten times more code, they feel like the steering wheel.
+
+## You have more agency than you think
+
+So we arrive back at the line that started all of this.
+
+Bender's closing argument is that this transformation is not the sole property of your company's leadership. They have a role, sure. But the people who actually decide what software engineering becomes are the front-line engineers. The tools you choose, the workflows you build, the practices you defend, the culture you set in a code review, that is where the future is being written. As he puts it, if you care about software quality and design, you have to use your voice, because your bosses probably will not do it for you.
+
+He also makes a plea that I did not expect from a keynote, and it is the part I want to carry with me. Help someone who is struggling. We are all moving at different speeds through this change, and it is easy to feel like you are falling behind. If you have figured out a workflow that works, share it. It is not a precious secret. If you are further along, be a mentor. None of us levels up alone.
+
+The metaphor he closes on is the one that stuck. For years we have learned to care for software the way you care for a single tree, tending each branch, fussing over each leaf. Soon we will not be managing a tree. We will be managing a forest. And you cannot manage a forest by staring at one tree. You have to step back and see the whole system, the way the parts feed each other, where the pressure builds, where a small change ripples outward.
+
+## What I am taking from this
+
+I came away from this talk energized, not anxious. That surprised me a little, because on paper it is a long list of things that are about to get harder.
+
+But the through line is hopeful. Everything is connected, which means the problems are big, yes, but it also means small actions can have outsized effects. The 10x moment is real, and it is going to expose every shortcut we have quietly tolerated. AI is going to amplify us, so the work of getting our fundamentals right is the highest leverage thing we can do. And the future of this craft is not being handed down from above. It is being decided by people like us, in the everyday choices we make about how we build.
+
+So I am going to keep sharpening the boring habits. I am going to think about my work as a system instead of a to-do list. And when I figure something out, I am going to pass it on.
+
+It really is a fascinating time to be a software engineer. If you have not watched the talk yet, go watch [Software Engineering at the Tipping Point](https://www.youtube.com/watch?v=2n41YjR5QfU). Then come tell me what stuck with you. We are all figuring this out together, and we have more agency than we think.
