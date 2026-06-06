@@ -5,9 +5,10 @@ interface WorkCardProps {
   title: string;
   description?: string;
   href: string;
-  status?: "active" | "completed" | "wip" | "abandoned";
+  status?: "active" | "completed" | "wip" | "abandoned" | "sunset";
   period?: string;
   position?: string;
+  location?: string;
   tags?: string[];
 }
 
@@ -18,6 +19,7 @@ export function WorkCard({
   status = "completed",
   period,
   position,
+  location,
   tags,
 }: WorkCardProps) {
   const statusColors = {
@@ -28,6 +30,9 @@ export function WorkCard({
     wip: "bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-400",
     abandoned:
       "bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400",
+    // Gracefully retired — intentionally wound down, distinct from "abandoned".
+    sunset:
+      "bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400",
   };
 
   const statusLabels = {
@@ -35,6 +40,7 @@ export function WorkCard({
     completed: "Completed",
     wip: "In Progress",
     abandoned: "Abandoned",
+    sunset: "Sunset",
   };
 
   return (
@@ -57,11 +63,13 @@ export function WorkCard({
               {description}
             </p>
           )}
-          {(position || period) && (
+          {(position || period || location) && (
             <p className="mt-1 text-sm text-neutral-500 dark:text-neutral-500">
               {position && <span className="font-medium">{position}</span>}
               {position && period && " • "}
               {period}
+              {(position || period) && location && " • "}
+              {location}
             </p>
           )}
           {tags && tags.length > 0 && (

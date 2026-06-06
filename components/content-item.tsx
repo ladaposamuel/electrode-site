@@ -6,8 +6,28 @@ export function ContentItem({ item }: { item: ContentItemType }) {
   const icon = item.type === 'video' ? '📺' : item.type === 'tweet' ? '🐦' : '📚';
   
   return (
-    <div className="flex items-start space-x-2 py-2">
-      <span className="text-sm">{icon}</span>
+    <div className="flex items-start space-x-3 py-2">
+      {item.thumbnail ? (
+        <Link
+          href={item.url}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="shrink-0"
+        >
+          {/* Plain img (not next/image) so external YouTube thumbnail hosts need no
+              next.config remotePatterns entry. */}
+          <img
+            src={item.thumbnail}
+            alt=""
+            width={112}
+            height={63}
+            loading="lazy"
+            className="w-28 aspect-video rounded-md object-cover border border-neutral-200 dark:border-neutral-800"
+          />
+        </Link>
+      ) : (
+        <span className="text-sm">{icon}</span>
+      )}
       <div className="flex-1">
         <Link
           href={item.url}

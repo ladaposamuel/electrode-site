@@ -12,7 +12,7 @@ export default function Works() {
       description:
         "A tool for online creators to manage their communities and share resources",
       href: "https://bz-web.mybuzzhive.com/",
-      status: "active" as const,
+      status: "sunset" as const,
       tags: [
         "Next.js",
         "Nest.js",
@@ -54,6 +54,15 @@ export default function Works() {
   ];
 
   const workExperience = [
+    {
+      title: "MySCU",
+      position: "Tech Lead / Founding Engineer",
+      period: "September 2025 - Present",
+      location: "Lagos, Nigeria (Remote)",
+      description: "Leading all engineering.",
+      href: "https://myscu.co",
+      status: "active" as const,
+    },
     {
       title: "Audiomack",
       position: "Fullstack Software Developer",

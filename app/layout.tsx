@@ -5,6 +5,11 @@ import localFont from "next/font/local";
 import Sidebar from "./components/sidebar";
 import { Analytics } from "@vercel/analytics/react";
 import { SpeedInsights } from "@vercel/speed-insights/next";
+import Script from "next/script";
+
+// Google Analytics measurement ID (gtag.js). Loaded only in production so local
+// development traffic does not pollute analytics.
+const GA_MEASUREMENT_ID = "G-QG3CW5J5KP";
 
 const jetbrainsMono = localFont({
   src: [
@@ -116,6 +121,22 @@ export default function RootLayout({
           <Analytics />
           <SpeedInsights />
         </main>
+        {process.env.NODE_ENV === "production" && (
+          <>
+            <Script
+              src={`https://www.googletagmanager.com/gtag/js?id=${GA_MEASUREMENT_ID}`}
+              strategy="afterInteractive"
+            />
+            <Script id="google-analytics" strategy="afterInteractive">
+              {`
+                window.dataLayer = window.dataLayer || [];
+                function gtag(){dataLayer.push(arguments);}
+                gtag('js', new Date());
+                gtag('config', '${GA_MEASUREMENT_ID}');
+              `}
+            </Script>
+          </>
+        )}
       </body>
     </html>
   );

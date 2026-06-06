@@ -1,12 +1,21 @@
-import { readingData } from "@/data/reading";
 import { ContentItem } from "@/components/content-item";
+import { getRecentReading, getRecentWatching } from "lib/metrics";
+
+// Firestore reads don't make a route dynamic on their own, so opt in explicitly —
+// otherwise the lists would be frozen at build time.
+export const dynamic = "force-dynamic";
 
 export const metadata = {
   title: "Reading & Watching",
   description: "What I'm currently reading and watching",
 };
 
-export default function ReadingPage() {
+export default async function ReadingPage() {
+  const [reading, watching] = await Promise.all([
+    getRecentReading(),
+    getRecentWatching(),
+  ]);
+
   return (
     <section>
       <h1 className="font-bold text-2xl mb-8 tracking-tighter">
@@ -19,7 +28,7 @@ export default function ReadingPage() {
             Currently Reading
           </h2>
           <div className="divide-y divide-neutral-100 dark:divide-neutral-800">
-            {readingData.reading.map((item) => (
+            {reading.map((item) => (
               <ContentItem key={item.url} item={item} />
             ))}
           </div>
@@ -30,14 +39,9 @@ export default function ReadingPage() {
             Currently Watching
           </h2>
           <div className="divide-y divide-neutral-100 dark:divide-neutral-800">
-            {readingData.watching
-              .sort(
-                (a, b) =>
-                  new Date(b.date).getTime() - new Date(a.date).getTime()
-              )
-              .map((item) => (
-                <ContentItem key={item.url} item={item} />
-              ))}
+            {watching.map((item) => (
+              <ContentItem key={item.url} item={item} />
+            ))}
           </div>
         </div>
       </div>

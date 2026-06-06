@@ -5,6 +5,7 @@ export type ContentItem = {
   author?: string;
   date: string;
   notes?: string;
+  thumbnail?: string;
 };
 
 export type ReadingData = {

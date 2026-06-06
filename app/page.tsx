@@ -1,14 +1,13 @@
 import type { ReactNode } from "react";
 import Link from "next/link";
 import Image from "next/image";
-import { getBlogViews } from "lib/metrics";
+import { getBlogViews, getWakatimeAllTime, getRecentWatching } from "lib/metrics";
 import { name, about, avatar } from "lib/info";
 import { getResumeLink } from "utils";
 import { HomepageButton } from "app/components/homepage-button/homepage-button";
 import { ArrowIcon } from "app/components/icons";
 import { allBlogs } from "contentlayer/generated";
 import { OpenToWork } from "./components/open-to-work";
-import { readingData } from "../data/reading";
 
 export const revalidate = 60;
 export const dynamic = "force-dynamic";
@@ -30,16 +29,17 @@ export default async function HomePage() {
     console.error(error);
   }
 
+  const wakatime = await getWakatimeAllTime();
+
   const publishedPosts = allBlogs
     .filter((post) => !post.draft)
     .sort(
       (a, b) =>
-        new Date(b.publishedAt).getTime() - new Date(a.publishedAt).getTime()
+        new Date(b.publishedAt).getTime() - new Date(a.publishedAt).getTime(),
     );
   const recentPosts = publishedPosts.slice(0, 3);
 
-  const nowReading = readingData.reading[0];
-  const nowWatching = readingData.watching[0];
+  const watched = await getRecentWatching();
 
   return (
     <div className="space-y-12">
@@ -58,12 +58,12 @@ export default async function HomePage() {
                 hey, I&apos;m samuel 👋
               </h1>
               <p className="mt-1 text-sm text-neutral-600 dark:text-neutral-400">
-                fullstack developer · open source contributor · writer
+                Software Technician | Writer | Continuous Learner
               </p>
             </div>
           </div>
 
-          <div className="relative shrink-0">
+          {/* <div className="relative shrink-0">
             <Image
               alt={name}
               src={avatar}
@@ -76,7 +76,7 @@ export default async function HomePage() {
             <span className="absolute -bottom-1 -right-1 flex h-4 w-4 items-center justify-center rounded-full bg-white dark:bg-[#111010]">
               <span className="h-2.5 w-2.5 rounded-full bg-emerald-500" />
             </span>
-          </div>
+          </div> */}
         </div>
 
         <p className="max-w-xl text-neutral-800 dark:text-neutral-200">
@@ -88,14 +88,25 @@ export default async function HomePage() {
         <SectionLabel>the numbers</SectionLabel>
         <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
           <StatTile label="Coding" href="https://wakatime.com/@electrode" live>
-            <Image
-              alt="Wakatime coding hours"
-              src="https://wakatime.com/badge/user/c81ce760-211d-45d2-8bcd-856d260c5c8c.svg?style=flat"
-              width={140}
-              height={18}
-              priority
-              className="dark:invert"
-            />
+            {wakatime ? (
+              <span className="flex items-baseline gap-1.5" title={wakatime.full}>
+                <span className="text-2xl font-bold tabular-nums">
+                  {wakatime.hours}
+                </span>
+                <span className="text-sm font-medium text-neutral-400 dark:text-neutral-500">
+                  {wakatime.suffix}
+                </span>
+              </span>
+            ) : (
+              <Image
+                alt="Wakatime coding hours"
+                src="https://wakatime.com/badge/user/c81ce760-211d-45d2-8bcd-856d260c5c8c.svg?style=flat"
+                width={140}
+                height={18}
+                priority
+                className="dark:invert"
+              />
+            )}
           </StatTile>
           <StatTile label="Blog views" href="/blog">
             <span className="text-2xl font-bold tabular-nums">
@@ -107,24 +118,55 @@ export default async function HomePage() {
               {publishedPosts.length}
             </span>
           </StatTile>
-          <StatTile label="Building" href="/works">
-            <span className="text-2xl font-bold">BuzzHive</span>
+          <StatTile label="Building" href="https://myscu.co">
+            <span className="text-2xl font-bold">MySCU</span>
           </StatTile>
         </div>
       </section>
 
       <OpenToWork />
 
-      <section>
-        <div className="flex items-center justify-between">
-          <SectionLabel className="mb-0">currently</SectionLabel>
-          <ViewAll href="/reading" />
-        </div>
-        <div className="mt-4 grid gap-3 sm:grid-cols-2">
-          <NowCard kicker="now reading" item={nowReading} />
-          <NowCard kicker="now watching" item={nowWatching} />
-        </div>
-      </section>
+      {watched.length > 0 && (
+        <section>
+          <div className="flex items-center justify-between">
+            <SectionLabel className="mb-0">recently watched</SectionLabel>
+            <ViewAll href="/reading" />
+          </div>
+          <ul className="mt-4 space-y-1">
+            {watched.slice(0, 5).map((item) => (
+              <li key={item.url}>
+                <a
+                  href={item.url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="group -mx-2 flex items-center gap-3 rounded-lg p-2 transition-colors hover:bg-neutral-50 dark:hover:bg-neutral-900/50"
+                >
+                  {/* Plain img (not next/image) so YouTube's thumbnail host needs no
+                      next.config remotePatterns entry. */}
+                  <img
+                    src={item.thumbnail}
+                    alt=""
+                    width={96}
+                    height={54}
+                    loading="lazy"
+                    className="aspect-video w-24 shrink-0 rounded-md border border-neutral-200 object-cover dark:border-neutral-800"
+                  />
+                  <div className="min-w-0">
+                    <p className="truncate text-sm font-medium text-neutral-900 transition-colors group-hover:text-[#47a3f3] dark:text-neutral-100">
+                      {item.title}
+                    </p>
+                    {item.author && (
+                      <p className="truncate text-xs text-neutral-500">
+                        {item.author}
+                      </p>
+                    )}
+                  </div>
+                </a>
+              </li>
+            ))}
+          </ul>
+        </section>
+      )}
 
       <section>
         <div className="flex items-center justify-between">
@@ -257,31 +299,5 @@ function Equalizer() {
       <span />
       <span />
     </span>
-  );
-}
-
-function NowCard({
-  kicker,
-  item,
-}: {
-  kicker: string;
-  item?: { title: string; url: string; author?: string };
-}) {
-  if (!item) return null;
-  return (
-    <a
-      href={item.url}
-      target="_blank"
-      rel="noopener noreferrer"
-      className="group flex flex-col gap-2 rounded-xl border border-neutral-200 bg-white p-4 transition-colors hover:border-neutral-300 dark:border-neutral-800 dark:bg-neutral-900/40 dark:hover:border-neutral-700"
-    >
-      <span className="text-[11px] font-medium uppercase tracking-wider text-neutral-400 dark:text-neutral-500">
-        {kicker}
-      </span>
-      <p className="line-clamp-2 font-medium text-neutral-900 transition-colors group-hover:text-[#47a3f3] dark:text-neutral-100">
-        {item.title}
-      </p>
-      {item.author && <p className="text-sm text-neutral-500">{item.author}</p>}
-    </a>
   );
 }

@@ -5,7 +5,9 @@ import { allBlogs } from 'contentlayer/generated';
 import { getTweets } from 'lib/twitter';
 import Balancer from 'react-wrap-balancer';
 import ViewCounter from '../view-counter';
-import { getViewsCount } from 'lib/metrics';
+import ClapButton from '../clap-button';
+import { getViewsCount, getClapsCount, getUserClaps } from 'lib/metrics';
+import { cookies } from 'next/headers';
 import { ArrowLeft, Calendar, Eye } from 'lucide-react';
 
 export async function generateMetadata({
@@ -80,9 +82,13 @@ export default async function Blog({
     notFound();
   }
 
-  const [allViews, tweets] = await Promise.all([
+  const clapperId = (await cookies()).get('clapper_id')?.value;
+
+  const [allViews, allClaps, tweets, initialUserClaps] = await Promise.all([
     getViewsCount(),
+    getClapsCount(),
     getTweets(post.tweetIds),
+    getUserClaps(post.slug, clapperId),
   ]);
 
   return (
@@ -143,6 +149,13 @@ export default async function Blog({
       <div className="prose prose-neutral dark:prose-invert max-w-none">
         <Mdx code={post.body.code} tweets={tweets} />
       </div>
+
+      <ClapButton
+        slug={post.slug}
+        title={post.title}
+        allClaps={allClaps}
+        initialUserClaps={initialUserClaps}
+      />
     </article>
   );
 }

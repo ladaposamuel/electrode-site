@@ -1,0 +1,68 @@
+rules_version = '2';
+
+// Firestore security rules for the electrode blog (views + claps).
+//
+// All Firestore access currently runs through the Next.js server (server actions in
+// app/actions.ts and the server-only readers in lib/metrics.tsx) using the Firebase
+// CLIENT SDK, which is subject to these rules. Because those requests are
+// unauthenticated, the rules can validate the SHAPE of a write but cannot prove it
+// came from your server — so this is defense-in-depth, not a hard lock. Your real
+// protection today is that the Firebase config is server-only (never shipped to the
+// browser). The stronger lock — Firebase Admin SDK + deny-all rules — is deferred.
+//
+// Counts are public to read (they render on every post); writes are constrained to a
+// non-negative numeric tally, and every path not matched below is denied.
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    function isValidCount(value) {
+      return (value is int || value is float) && value >= 0;
+    }
+
+    // Per-post view counter: views/{slug} = { title, slug, count, timestamp }.
+    match /views/{slug} {
+      allow read: if true;
+      allow create, update: if isValidCount(request.resource.data.count);
+    }
+
+    // Per-post clap total at claps/{slug}, plus per-reader and per-IP tallies in
+    // subcollections (clappers/{cookieId}, ipClappers/{ipHash}).
+    //
+    // IMPORTANT: a parent match does NOT cascade into subcollections. The recursive
+    // {document=**} match below is what authorizes the clappers/ and ipClappers/
+    // writes — without it those would be denied and clapping would break.
+    match /claps/{slug} {
+      allow read: if true;
+      allow create, update: if isValidCount(request.resource.data.count);
+
+      match /{document=**} {
+        allow read: if true;
+        allow create, update: if isValidCount(request.resource.data.count);
+      }
+    }
+
+    // "Currently watching" videos logged via the bookmarklet → /api/watching.
+    // One doc per YouTube video id; public read, shape-validated write.
+    match /watching/{videoId} {
+      allow read: if true;
+      allow create, update:
+        if request.resource.data.title is string
+        && request.resource.data.url is string;
+    }
+
+    // "Currently reading" links logged via the bookmarklet → /api/reading.
+    // One doc per normalized-URL hash; public read, shape-validated write.
+    match /reading/{linkId} {
+      allow read: if true;
+      allow create, update:
+        if request.resource.data.title is string
+        && request.resource.data.url is string;
+    }
+
+    // Everything else is denied.
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}
