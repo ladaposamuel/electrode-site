@@ -1,3 +1,4 @@
+import Image from "next/image";
 import { ContactMethod } from "../components/contact-method";
 import { GitHubIcon, LinkedInIcon, TwitterIcon } from "../components/icons";
 import { CopyEmail } from "@/components/copy-email";
@@ -58,9 +59,12 @@ export default function Contact() {
         </div>
 
         <div className="overflow-hidden rounded-xl border border-neutral-200 dark:border-neutral-800">
-          <img
+          <Image
             alt="Samuel Ladapo"
-            src="https://i.imgur.com/DEXcwFy.png"
+            src="/contact-banner.png"
+            width={728}
+            height={274}
+            priority
             className="block h-auto w-full"
           />
         </div>
