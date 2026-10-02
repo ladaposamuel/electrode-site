@@ -75,7 +75,10 @@ export default async function HomePage() {
             </span>
             <div>
               <h1 className="text-3xl font-bold tracking-tighter sm:text-4xl">
-                hey, I&apos;m samuel 👋
+                hey, I&apos;m samuel{" "}
+                <span className="wave" role="img" aria-label="waving hand">
+                  👋
+                </span>
               </h1>
               <p className="mt-1 text-sm text-neutral-600 dark:text-neutral-400">
                 Fullstack developer, paintball enthusiast, continuous learner
