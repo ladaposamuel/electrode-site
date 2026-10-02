@@ -2,12 +2,16 @@ import type { ReactNode } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { getBlogViews, getWakatimeAllTime, getRecentWatching } from "lib/metrics";
-import { name, about, avatar } from "lib/info";
+import { name, avatar } from "lib/info";
+import { projects } from "lib/projects";
 import { getResumeLink } from "utils";
 import { HomepageButton } from "app/components/homepage-button/homepage-button";
 import { ArrowIcon } from "app/components/icons";
+import { WorkCard } from "app/components/work-card";
+import { VideoCard } from "@/components/video-card";
 import { allBlogs } from "contentlayer/generated";
-import { OpenToWork } from "./components/open-to-work";
+
+const FEATURED_PROJECTS = ["KoiLane", "Venhoot", "MangoLogs"];
 
 export const revalidate = 60;
 export const dynamic = "force-dynamic";
@@ -40,6 +44,9 @@ export default async function HomePage() {
   const recentPosts = publishedPosts.slice(0, 3);
 
   const watched = await getRecentWatching();
+  const featuredProjects = projects.filter((project) =>
+    FEATURED_PROJECTS.includes(project.title),
+  );
 
   return (
     <div className="space-y-12">
@@ -58,7 +65,7 @@ export default async function HomePage() {
                 hey, I&apos;m samuel 👋
               </h1>
               <p className="mt-1 text-sm text-neutral-600 dark:text-neutral-400">
-                Software Technician | Writer | Continuous Learner
+                Fullstack developer, paintball enthusiast, continuous learner
               </p>
             </div>
           </div>
@@ -80,7 +87,8 @@ export default async function HomePage() {
         </div>
 
         <p className="max-w-xl text-neutral-800 dark:text-neutral-200">
-          {about()}
+          Full-stack developer leading engineering at MySCU and building for the
+          web since 2018.
         </p>
       </section>
 
@@ -124,47 +132,49 @@ export default async function HomePage() {
         </div>
       </section>
 
-      <OpenToWork />
+      <Link
+        href="/contact"
+        className="group flex items-center justify-between gap-4 rounded-xl border border-neutral-200 px-5 py-4 transition-colors hover:border-neutral-300 dark:border-neutral-800 dark:hover:border-neutral-700"
+      >
+        <span className="flex items-center gap-3">
+          <span className="relative flex h-2 w-2">
+            <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-green-500 opacity-60" />
+            <span className="relative inline-flex h-2 w-2 rounded-full bg-green-500" />
+          </span>
+          <span className="text-sm font-medium text-neutral-900 dark:text-neutral-100">
+            Open to work & collaborations
+          </span>
+        </span>
+        <span className="whitespace-nowrap text-sm text-neutral-500 transition-colors group-hover:text-neutral-900 dark:group-hover:text-neutral-100">
+          let&apos;s talk →
+        </span>
+      </Link>
+
+      <section>
+        <div className="flex items-center justify-between">
+          <SectionLabel className="mb-0">selected projects</SectionLabel>
+          <ViewAll href="/works" />
+        </div>
+        <div className="-mx-3 mt-3 divide-y divide-neutral-100 dark:divide-neutral-800">
+          {featuredProjects.map((project) => (
+            <WorkCard key={project.title} {...project} tags={undefined} />
+          ))}
+        </div>
+      </section>
 
       {watched.length > 0 && (
         <section>
           <div className="flex items-center justify-between">
             <SectionLabel className="mb-0">recently watched</SectionLabel>
-            <ViewAll href="/reading" />
+            <ViewAll href="/reading?tab=watching" />
           </div>
-          <ul className="mt-4 space-y-1">
-            {watched.slice(0, 5).map((item) => (
-              <li key={item.url}>
-                <a
-                  href={item.url}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="group -mx-2 flex items-center gap-3 rounded-lg p-2 transition-colors hover:bg-neutral-50 dark:hover:bg-neutral-900/50"
-                >
-                  {/* Plain img (not next/image) so YouTube's thumbnail host needs no
-                      next.config remotePatterns entry. */}
-                  <img
-                    src={item.thumbnail}
-                    alt=""
-                    width={96}
-                    height={54}
-                    loading="lazy"
-                    className="aspect-video w-24 shrink-0 rounded-md border border-neutral-200 object-cover dark:border-neutral-800"
-                  />
-                  <div className="min-w-0">
-                    <p className="truncate text-sm font-medium text-neutral-900 transition-colors group-hover:text-[#47a3f3] dark:text-neutral-100">
-                      {item.title}
-                    </p>
-                    {item.author && (
-                      <p className="truncate text-xs text-neutral-500">
-                        {item.author}
-                      </p>
-                    )}
-                  </div>
-                </a>
-              </li>
+          <div className="mt-4 grid grid-cols-2 gap-4 sm:grid-cols-3">
+            {watched.slice(0, 3).map((item, index) => (
+              <div key={item.url} className={index === 2 ? "hidden sm:block" : ""}>
+                <VideoCard item={item} />
+              </div>
             ))}
-          </ul>
+          </div>
         </section>
       )}
 
