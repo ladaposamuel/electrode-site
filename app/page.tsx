@@ -9,9 +9,12 @@ import { HomepageButton } from "app/components/homepage-button/homepage-button";
 import { ArrowIcon } from "app/components/icons";
 import { WorkCard } from "app/components/work-card";
 import { VideoCard } from "@/components/video-card";
+import { CountUp } from "@/components/count-up";
+import { ArrowUpRight } from "lucide-react";
 import { allBlogs } from "contentlayer/generated";
 
 const FEATURED_PROJECTS = ["KoiLane", "Venhoot", "MangoLogs"];
+const CAREER_START_YEAR = 2018;
 
 export const revalidate = 60;
 export const dynamic = "force-dynamic";
@@ -42,6 +45,16 @@ export default async function HomePage() {
         new Date(b.publishedAt).getTime() - new Date(a.publishedAt).getTime(),
     );
   const recentPosts = publishedPosts.slice(0, 3);
+  const latestPostDate = publishedPosts[0]
+    ? new Date(publishedPosts[0].publishedAt).toLocaleDateString("en-US", {
+        month: "short",
+        day: "numeric",
+      })
+    : "";
+
+  const parsedHours = wakatime ? Number(wakatime.hours.replace(/,/g, "")) : NaN;
+  const codingHours = Number.isFinite(parsedHours) ? parsedHours : null;
+  const yearsShipping = new Date().getFullYear() - CAREER_START_YEAR;
 
   const watched = await getRecentWatching();
   const featuredProjects = projects.filter((project) =>
@@ -94,15 +107,20 @@ export default async function HomePage() {
 
       <section>
         <SectionLabel>the numbers</SectionLabel>
-        <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
-          <StatTile label="Coding" href="https://wakatime.com/@electrode" live>
-            {wakatime ? (
-              <span className="flex items-baseline gap-1.5" title={wakatime.full}>
-                <span className="text-2xl font-bold tabular-nums">
-                  {wakatime.hours}
+        <div className="grid grid-cols-2 gap-px overflow-hidden rounded-xl border border-neutral-200 bg-neutral-200 lg:grid-cols-4 dark:border-neutral-800 dark:bg-neutral-800">
+          <StatTile
+            label="Coding"
+            caption="via WakaTime"
+            href="https://wakatime.com/@electrode"
+            live
+          >
+            {codingHours !== null ? (
+              <span className="flex items-baseline gap-1.5" title={wakatime?.full}>
+                <span className="text-2xl font-bold">
+                  <CountUp value={codingHours} />
                 </span>
                 <span className="text-sm font-medium text-neutral-400 dark:text-neutral-500">
-                  {wakatime.suffix}
+                  {wakatime?.suffix}
                 </span>
               </span>
             ) : (
@@ -116,18 +134,24 @@ export default async function HomePage() {
               />
             )}
           </StatTile>
-          <StatTile label="Blog views" href="/blog">
-            <span className="text-2xl font-bold tabular-nums">
-              {views?.toLocaleString() ?? "—"}
+          <StatTile label="Blog views" caption="across all posts" href="/blog">
+            <span className="text-2xl font-bold">
+              {views !== undefined ? <CountUp value={views} /> : "—"}
             </span>
           </StatTile>
-          <StatTile label="Articles" href="/blog">
-            <span className="text-2xl font-bold tabular-nums">
-              {publishedPosts.length}
+          <StatTile
+            label="Articles"
+            caption={`latest ${latestPostDate}`}
+            href="/blog"
+          >
+            <span className="text-2xl font-bold">
+              <CountUp value={publishedPosts.length} />
             </span>
           </StatTile>
-          <StatTile label="Building" href="https://myscu.co">
-            <span className="text-2xl font-bold">MySCU</span>
+          <StatTile label="Years shipping" caption="since 2018" href="/about">
+            <span className="text-2xl font-bold">
+              <CountUp value={yearsShipping} suffix="+" />
+            </span>
           </StatTile>
         </div>
       </section>
@@ -259,29 +283,37 @@ function ViewAll({ href }: { href: string }) {
 
 function StatTile({
   label,
+  caption,
   href,
   live = false,
   children,
 }: {
   label: string;
+  caption: string;
   href: string;
   live?: boolean;
   children: ReactNode;
 }) {
   const cardClass =
-    "group flex min-h-[6rem] flex-col justify-between overflow-hidden rounded-xl border border-neutral-200 bg-white p-4 transition-colors hover:border-neutral-300 dark:border-neutral-800 dark:bg-neutral-900/40 dark:hover:border-neutral-700";
+    "group flex flex-col bg-white p-4 transition-colors hover:bg-neutral-50 dark:bg-[#111010] dark:hover:bg-neutral-900";
 
   const body = (
     <>
-      <div className="flex items-center justify-between">
+      <div className="flex h-3 items-center justify-between">
         <span className="text-[11px] font-medium uppercase tracking-wider text-neutral-400 dark:text-neutral-500">
           {label}
         </span>
-        {live && <Equalizer />}
+        {live && (
+          <span className="group-hover:hidden">
+            <Equalizer />
+          </span>
+        )}
+        <ArrowUpRight className="hidden h-3.5 w-3.5 text-neutral-400 group-hover:block" />
       </div>
-      <div className="mt-2 flex items-end text-neutral-900 dark:text-neutral-100">
+      <div className="mt-3 flex items-baseline text-neutral-900 dark:text-neutral-100">
         {children}
       </div>
+      <p className="mt-1 text-xs text-neutral-500">{caption}</p>
     </>
   );
 
