@@ -1,63 +1,40 @@
 import { ContentItem as ContentItemType } from '@/types/reading';
-import { ExternalLink } from 'lucide-react';
+import { ArrowUpRight } from 'lucide-react';
 import Link from 'next/link';
 
 export function ContentItem({ item }: { item: ContentItemType }) {
   const icon = item.type === 'video' ? '📺' : item.type === 'tweet' ? '🐦' : '📚';
-  
+
   return (
-    <div className="flex items-start space-x-3 py-2">
-      {item.thumbnail ? (
-        <Link
-          href={item.url}
-          target="_blank"
-          rel="noopener noreferrer"
-          className="shrink-0"
-        >
-          {/* Plain img (not next/image) so external YouTube thumbnail hosts need no
-              next.config remotePatterns entry. */}
-          <img
-            src={item.thumbnail}
-            alt=""
-            width={112}
-            height={63}
-            loading="lazy"
-            className="w-28 aspect-video rounded-md object-cover border border-neutral-200 dark:border-neutral-800"
-          />
-        </Link>
-      ) : (
-        <span className="text-sm">{icon}</span>
-      )}
-      <div className="flex-1">
-        <Link
-          href={item.url}
-          target="_blank"
-          rel="noopener noreferrer"
-          className="text-sm font-medium text-neutral-900 dark:text-neutral-100 hover:text-neutral-600 dark:hover:text-neutral-400 flex items-center"
-        >
-          {item.title}
-          <ExternalLink className="ml-1 inline-block h-3 w-3" />
-        </Link>
-        <div className="flex items-center gap-x-2 mt-1">
-          {item.author && (
-            <span className="text-xs text-neutral-600 dark:text-neutral-400">
-              by {item.author}
-            </span>
-          )}
-          <span className="text-xs text-neutral-500 dark:text-neutral-500">
+    <Link
+      href={item.url}
+      target="_blank"
+      rel="noopener noreferrer"
+      className="group -mx-2 flex items-start gap-3 rounded-md px-2 py-2.5 transition-colors hover:bg-neutral-50 dark:hover:bg-neutral-900"
+    >
+      <span className="mt-0.5 text-sm">{icon}</span>
+      <div className="min-w-0 flex-1">
+        <div className="flex items-baseline justify-between gap-3">
+          <p className="text-sm font-medium text-neutral-900 dark:text-neutral-100">
+            {item.title}
+            <ArrowUpRight className="ml-0.5 inline-block h-3 w-3 text-neutral-400 transition-transform group-hover:-translate-y-px group-hover:translate-x-px" />
+          </p>
+          <span className="shrink-0 text-xs tabular-nums text-neutral-500">
             {new Date(item.date).toLocaleDateString('en-US', {
               month: 'short',
               day: 'numeric',
-              year: 'numeric'
             })}
           </span>
         </div>
+        {item.author && (
+          <p className="mt-0.5 text-xs text-neutral-500">{item.author}</p>
+        )}
         {item.notes && (
-          <p className="text-xs text-neutral-600 dark:text-neutral-400 mt-1">
+          <p className="mt-1 line-clamp-2 text-xs text-neutral-600 dark:text-neutral-400">
             {item.notes}
           </p>
         )}
       </div>
-    </div>
+    </Link>
   );
 }
