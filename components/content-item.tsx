@@ -1,15 +1,7 @@
 import { ContentItem as ContentItemType } from '@/types/reading';
 import { ArrowUpRight } from 'lucide-react';
 import Link from 'next/link';
-
-function getFaviconUrl(url: string) {
-  try {
-    const { hostname } = new URL(url);
-    return `https://www.google.com/s2/favicons?domain=${hostname}&sz=64`;
-  } catch {
-    return null;
-  }
-}
+import { getFaviconUrl } from 'lib/favicon';
 
 export function ContentItem({ item }: { item: ContentItemType }) {
   const icon = item.type === 'video' ? '📺' : item.type === 'tweet' ? '🐦' : '📚';
