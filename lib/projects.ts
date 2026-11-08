@@ -1,5 +1,24 @@
 export const projects = [
   {
+    title: "SuperApply",
+    description:
+      "An admissions platform by MySCU that builds a student's academic pathway to their dream university and applies to the schools on it for them",
+    href: "https://superapply.co",
+    status: "wip" as const,
+    tags: [
+      "Next.js",
+      "Nest.js",
+      "TypeScript",
+      "Tailwind",
+      "Drizzle",
+      "PostgreSQL",
+      "Valkey",
+      "Better Auth",
+      "Vercel AI SDK",
+      "Docker",
+    ],
+  },
+  {
     title: "KoiLane",
     description:
       "An invite-only job matching service that turns a résumé into a profile, scores jobs against it with embeddings, and drafts applications",
@@ -47,10 +66,20 @@ export const projects = [
   {
     title: "Mangomoney App",
     description:
-      "A mobile application that allows users to schedule money transfers and bills payments.",
+      "A personal money app that holds my full transaction history, records new spending from plain language or receipt photos, and tells me where I stand",
     href: "https://mangomoney.app",
-    status: "abandoned" as const,
-    tags: ["React Native", "Node.js", "MongoDB"],
+    status: "active" as const,
+    tags: [
+      "Next.js",
+      "TypeScript",
+      "tRPC",
+      "Drizzle",
+      "PostgreSQL",
+      "Tailwind",
+      "Better Auth",
+      "Claude API",
+      "PWA",
+    ],
   },
   {
     title: "MangoLogs",

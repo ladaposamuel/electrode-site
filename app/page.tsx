@@ -13,7 +13,7 @@ import { CountUp } from "@/components/count-up";
 import { ArrowUpRight } from "lucide-react";
 import { allBlogs } from "contentlayer/generated";
 
-const FEATURED_PROJECTS = ["KoiLane", "Venhoot", "MangoLogs"];
+const FEATURED_PROJECTS = ["SuperApply", "KoiLane", "Venhoot", "MangoLogs"];
 const CAREER_START_YEAR = 2018;
 
 export const revalidate = 60;
