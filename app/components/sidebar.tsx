@@ -21,6 +21,9 @@ const navItems = {
   '/reading': {
     name: 'reading',
   },
+  '/uses': {
+    name: 'uses',
+  },
   '/contact': {
     name: 'contact me',
   }

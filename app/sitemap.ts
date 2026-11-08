@@ -6,7 +6,7 @@ export default async function sitemap() {
     lastModified: post.publishedAt,
   }));
 
-  const routes = ['', '/about', '/blog', '/works', '/contact'].map(
+  const routes = ['', '/about', '/blog', '/works', '/reading', '/uses', '/contact'].map(
     (route) => ({
       url: `https://electrode.dev${route}`,
       lastModified: new Date().toISOString().split('T')[0],
