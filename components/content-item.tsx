@@ -2,8 +2,18 @@ import { ContentItem as ContentItemType } from '@/types/reading';
 import { ArrowUpRight } from 'lucide-react';
 import Link from 'next/link';
 
+function getFaviconUrl(url: string) {
+  try {
+    const { hostname } = new URL(url);
+    return `https://www.google.com/s2/favicons?domain=${hostname}&sz=64`;
+  } catch {
+    return null;
+  }
+}
+
 export function ContentItem({ item }: { item: ContentItemType }) {
   const icon = item.type === 'video' ? '📺' : item.type === 'tweet' ? '🐦' : '📚';
+  const favicon = getFaviconUrl(item.url);
 
   return (
     <Link
@@ -12,7 +22,18 @@ export function ContentItem({ item }: { item: ContentItemType }) {
       rel="noopener noreferrer"
       className="group -mx-2 flex items-start gap-3 rounded-md px-2 py-2.5 transition-colors hover:bg-neutral-50 dark:hover:bg-neutral-900"
     >
-      <span className="mt-0.5 text-sm">{icon}</span>
+      {favicon ? (
+        <img
+          src={favicon}
+          alt=""
+          width={16}
+          height={16}
+          loading="lazy"
+          className="mt-0.5 h-4 w-4 shrink-0 rounded-sm"
+        />
+      ) : (
+        <span className="mt-0.5 text-sm">{icon}</span>
+      )}
       <div className="min-w-0 flex-1">
         <div className="flex items-baseline justify-between gap-3">
           <p className="text-sm font-medium text-neutral-900 dark:text-neutral-100">
